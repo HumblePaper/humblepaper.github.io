@@ -4,6 +4,8 @@
 
     <div class="ui container">
 
+      <signuporsignin></signuporsignin>
+      
     </div>
               
       this.data = opts

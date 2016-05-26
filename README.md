@@ -1,1 +1,1 @@
-# humblepaper.github.io
+# client__syndication

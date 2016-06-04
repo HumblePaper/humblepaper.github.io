@@ -5,7 +5,7 @@ var riot = require('riot')
 
 import  LoginApp  from './reducer.js'
 import thunk from 'redux-thunk'
-import api from './api'
+import api, {anonymousMacaroon} from './api'
 
 
 
@@ -17,7 +17,7 @@ import {TS_Poller, PollerActions, LoginActions}  from './action.js'
 import {jobsEvent as JobsEvent} from './jobsEvent.js'
 
 
-
+anonymousMacaroon()
 window.JobsEvent = JobsEvent(riot, store)
 window.jobsEvent = new window.JobsEvent()
 

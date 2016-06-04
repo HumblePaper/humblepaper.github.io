@@ -76,6 +76,7 @@
 	var LoginEvent = __webpack_require__(322).default;
 
 
+	(0, _api.anonymousMacaroon)();
 	window.JobsEvent = (0, _jobsEvent.jobsEvent)(riot, store);
 	window.jobsEvent = new window.JobsEvent();
 
@@ -8396,6 +8397,7 @@
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 	exports.loginAPI = loginAPI;
+	exports.anonymousMacaroon = anonymousMacaroon;
 	exports.pollerApi = pollerApi;
 
 	__webpack_require__(302);
@@ -8422,18 +8424,34 @@
 				testArray.push({ job_id: job_id, payload: { macron: Math.random() }, type: 'success' });
 			});
 		} else {
-			return fetch(API_ROOT + 'login/', { method: 'POST' }).then(function (response) {
+
+			return fetch(API_ROOT + 'login/', { method: 'POST', headers: { 'Authorization': window.macaroons, 'Content-Type': 'application/json' } }).then(function (response) {
 				if (response.status >= 400) {
 					throw new Error(response);
 				}
 				return response.json();
-			}).then(function (json) {
-				console.log(json);
 			}).catch(function (err) {
 				console.log('err1', err);
 				return err;
 			});
 		}
+	}
+
+	function anonymousMacaroon() {
+
+		return fetch(API_ROOT + 'anonymousMacaroon').then(function (response) {
+			if (response.status >= 400) {
+				throw new Error(response);
+			}
+			data = response.json();
+			window.macaroons = data.macaroons;
+			return response.json();
+		}).then(function (json) {
+			console.log(json);
+		}).catch(function (err) {
+			console.log('err1', err);
+			return err;
+		});
 	}
 
 	function pollerApi(globalPollerEvent, callback) {

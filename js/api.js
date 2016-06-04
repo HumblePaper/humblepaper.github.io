@@ -40,14 +40,8 @@ export function loginAPI(username, password){
 
 export function anonymousMacaroon(){
 
-	if(test){
-		return new Promise((resolve, reject) => {
-			var job_id = Math.random()
-			window.setTimeout(() => resolve({job_id:job_id}), 1000);
-        	testArray.push({job_id:job_id, payload:{macron:Math.random()}, type:'success'})
-		})
-	}else{
-		return fetch(API_ROOT+'login/', {method:'POST'})
+
+		return fetch(API_ROOT+'anonymousMacaroon')
 		.then(function(response) {
 		    if (response.status >= 400) {
 		        throw new Error(response);
@@ -63,10 +57,11 @@ export function anonymousMacaroon(){
 			return err
 		} );
 
-	}
+	
 
 	
 }
+
 export function pollerApi(globalPollerEvent, callback){
 	if (test){
 		console.log(testArray.length)

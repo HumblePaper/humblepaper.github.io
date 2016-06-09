@@ -1,5 +1,7 @@
 <drafteditpage>
 
+<div class="ui container">
+
 	<div class={row:true, hide:data.view=='investor'||data.steps.display==false, show:data.view=='founder'&&data.steps.display==true}>
 
     	<div class={ui:true, text:true, small:true, grey:data.menutheme.color=='grey', teal:data.menutheme=='teal', blue:data.menutheme.color=='blue', red:data.menutheme=='red', inverted:data.menutheme.inverted, right:true, menu:true, show:steps.display, hide:steps.display==false}>
@@ -80,10 +82,14 @@
         </div>
     </div>
 
+    </div>
 
     this.data=opts.data
 
-    console.log(opts)
+    this.data.dropdownobservable = riot.observable()
+
+
+    console.log(opts.data)
 
 
 

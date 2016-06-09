@@ -61,14 +61,14 @@ update_graph = function(object, interval) {
     _this.grapharray.push(pair)
 }
 
-this.observable.on('graph_changes', function(object){
+_this.observable.on('graph_changes', function(object){
 console.log(_this.interval)
   update_graph(object, _this.intervals)
   _this.update()
   drawChart()
 })
 
-this.observable.on('set_start_date', function(object){
+_this.observable.on('set_start_date', function(object){
   _this.start_date = moment(object).toDate()
   console.log(_this.start_date)
 })

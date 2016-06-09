@@ -39,9 +39,9 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 
 </head>
-<body class="pusher">
-  <routehandler></routehandler>
 
+<body id="termsheet" class="index pusher">
+  <drafteditpage></drafteditpage>
  <!-- FONT
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <!-- <script src="https://use.typekit.net/ize6grj.js"></script> -->
@@ -58,9 +58,10 @@ try{Typekit.load({ async: true });}catch(e){}
 <script src="../static/js/static/js/deps/pickadate/lib/picker.date.js"></script>
 <script src="../static/js/semantic.min.js"></script>
 <!-- <script src="//fast.wistia.net/assets/external/E-v1.js"></script>  -->
-<script src="../https://cdn.jsdelivr.net/chart.js/1.0.2/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/chart.js/1.0.2/Chart.min.js"></script>
 <script type="riot/tag" src="static/js/tags/dropdown.tag"></script>
 <script type="riot/tag" src="static/js/tags/signup.tag"></script>
+<script type="riot/tag" src="static/js/tags/only-logo.tag"></script>
 <script type="riot/tag" src="static/js/tags/graph.tag"></script>
 <script type="riot/tag" src="static/js/tags/tractionedit.tag"></script>
 <script type="riot/tag" src="static/js/tags/step.tag"></script>
@@ -85,10 +86,8 @@ try{Typekit.load({ async: true });}catch(e){}
 <script type="riot/tag" src="static/js/tags/datepicker.tag"></script>
 <script src="static/js/static/js/deps/moment/min/moment.min.js"></script>
 <script src="static/js/riot+compiler.min.js"></script>
-<script src="static/js/deps/page/page.js"></script>
-<script src="static/js/routehandler.js"></script>
-<script src="static/js/app.js"></script>
 <script>
+  
 
 var graph_data = [
         {
@@ -109,8 +108,11 @@ var graph_data = [
         }
         ]
 
-</script>
-<script>riot.mount('page', {'view':'founder', 'state':'view','active_step':'tractionedit', 'steps':{'display':true, 'vertical':true, 'items': [{'icon':'payment', 'title':'Startup Information', 'description':'Provide a video, etc', 'active':false, 'disabled':false, 'completed':true},{'icon':'payment', 'title':'Add Traction', 'description':'Add traction', 'completed':false, 'active':true, 'disabled':false},{'icon':'payment', 'title':'Add Team', 'description':'Add your team members', 'completed':true, 'active':false, 'disabled':true},{'icon':'payment', 'title':'Set Commercials', 'description':'Select terms and key commercials', 'active':false, 'completed':true, 'disabled':true},{'icon':'payment', 'title':'Preview & Share', 'description':'Share the termsheet and track commits', 'active':false, 'disabled':true}]}, 'graph':graph_data,'share':{'menutheme':{'color':'basic blue','inverted':false},'commercials': {'terms':'TermSheet Preferred Financing Version 2.1', 'target_raise':15000000, 'min_raise':10000000, 'max_raise':25000000, 'premoney':150000000, 'postmoney':155000000, 'dilution':11}, 'name':'Cupick', 'highconcept':'Art that is Accessible', 'description':'Cupick is a three founder startup ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ya da ', 'location':{'city':'Hyderabad'}, 'company':{'name':'Garage Labs Pvt Ltd','country':'India'},'video_url':'https://www.youtube.com/watch?v=Ccs36vSAZJY', 'logo':'https://pbs.twimg.com/profile_images/511854241279799296/5djkjzpj.png', 'deck_url':'https://dk7tug13ltsb6.cloudfront.net/static/img/banner-product.jpg?07052016', 'website':'http://cupick.com'}})</script>
 
+
+</script>
+<!-- <script src="static/js/deps/page/page.js"></script> -->
+<!-- <script src="static/js/routehandler.js"></script> -->
+<script src="static/js/app.js"></script>
 </body>
 </html>

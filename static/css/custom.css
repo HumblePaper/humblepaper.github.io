@@ -72,3 +72,69 @@
     font-weight: 700;
 }
 
+/*******************************
+            Homepage
+*******************************/
+
+#termsheet.index .pusher > .page {
+  background-color: #FFFFFF;
+}
+
+@media only screen and (max-width: 992px) {
+  html {
+    overflow-x: visible;
+    -webkit-overflow-scrolling: auto;
+  }
+}
+#termsheet > .pusher {
+  display: block;
+  min-height: 0px;
+  flex-direction: initial;
+}
+#termsheet > .pusher > .full.height {
+  display: block;
+  flex: none !important;
+}
+
+/*--------------
+    Masthead
+---------------*/
+
+#termsheet.index .masthead.segment.zoomed h1 {
+  text-shadow: 0px 0px 4px rgba(0, 0, 0, 0);
+  color: rgba(255, 255, 255, 1);
+}
+#termsheet.index .masthead.zoomed:after {
+  opacity: 0;
+}
+#termsheet.index .masthead.zoomed {
+  background-color: #25282A;
+}
+
+#termsheet.index .masthead {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: 0em;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0px;
+  border-bottom: none;
+
+  background-color: #000000;
+  background-position: 50% 50%;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+#termsheet.index .masthead:after {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  content: '';
+  background-size: cover;
+
+  opacity: 0.45;
+}
+

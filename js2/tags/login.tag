@@ -1,4 +1,4 @@
-<!-- impet  -->
+import {storeMixin} from '../store'
 <login>
 	<form class="ui form" id="signinForm" onsubmit="{this.loginUser}">
   		  <h4 class="ui dividing header">Login</h4>
@@ -18,7 +18,11 @@
   		</form>
 
   		<script>
-  			  this.mixin(OptsMixin, id_mixin_instance)
+
+  			  this.mixin(storeMixin)
+  			    this.on('mount', function(){
+			    
+			  })
 
   		</script>
 </login>

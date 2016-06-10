@@ -37,9 +37,51 @@ var store = new Store()
 
 var storeMixin = {
   init: function() {
-    this.on('updated', function() { console.log('Updated!') })
+  	this._store = store
+
+    if(!this.updater)
+    	throw ("this.updater needs to be defined")
+    
+    if(!this.path || !this.path.length)
+  		throw ("this.path needs to be defined")
+  	
+    this.on('mount', function(){
+    	this.currentData = this.getData(store.getStore())
+    	
+    	store.on('update', function(){
+    		var newData = this.getData(store.getStore())
+    		if(newData !== this.currentData){
+    			this.currentData = newData
+    			this.update()
+    		}
+    	})
+
+    	store.on('action', function(actionType, data){
+    		var storeData = this.getData(store.getStore())
+    		var updatedStoreData = this.updater(actionType, data, storeData)
+
+    		if(updatedStoreData !== storeData){
+    			var newObject = {}
+    				newObject[this.path] = updatedStoreData
+    			var newStoreData = Object.assign({}, store.getStore(), newObject)
+
+    			store.update(newStoreData)
+    		}
+
+    	})
+
   },
+
+  dispatch : function(action, data) {
+    store.dispatch(action)
+  },
+  getData: function(newStore){
+  
+
+  	return store.getStore()[this.path]
+  }
+
 }
 
-export storeMixin storeMixin
+export {storeMixin}
 export default store

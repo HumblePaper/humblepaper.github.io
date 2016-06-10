@@ -50,7 +50,7 @@
 
 	__webpack_require__(299);
 
-	var _store = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./store\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var _store = __webpack_require__(302);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -8120,8 +8120,12 @@
 
 	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
 
+	var _store = __webpack_require__(302);
+
 	riot.tag2('login', '<form class="ui form" id="signinForm" onsubmit="{this.loginUser}"> <h4 class="ui dividing header">Login</h4> <div> <div class="field"> <label>Username</label> <input type="text" name="username" placeholder="username"> </div> <div class="field"> <label>Password</label> <input type="password" name="password" placeholder="password"> </div> <button __disabled="{loading}" class="{loading: loading, ui: true, button: true}" type="submit" form="signinForm" value="Submit">SignIn</button> </div> </form>', '', '', function (opts) {
-	  this.mixin(OptsMixin, id_mixin_instance);
+
+	  this.mixin(_store.storeMixin);
+	  this.on('mount', function () {});
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
@@ -10779,6 +10783,70 @@
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 302 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	var riot = __webpack_require__(300);
+
+	function Store() {
+		var _store = {};
+		var isDispatching = false;
+
+		riot.observable(this);
+
+		this.dispatch = function (actionType, data) {
+			this.trigger('action', actionType, data);
+		};
+
+		this.getStore = function () {
+			return _store;
+		};
+
+		this.update = function (store) {
+			if (store !== _store) {
+				_store = store;
+				this.trigger('update', _store);
+			}
+		};
+
+		this.on('action', function (actionType, data) {
+			console.log('action', actionType, data);
+		});
+
+		this.on('update', function () {
+			console.log('update ', this.getStore());
+		});
+	}
+
+	var store = new Store();
+
+	var storeMixin = {
+		init: function init() {
+			this._store = store;
+			this.on('mount', function () {
+				console.log('mount');
+			});
+		},
+
+		dispatch: function dispatch(action, data) {
+			store.dispatch(action);
+		},
+
+		updateStore: function updateStore(newStore) {
+			store.update(newStore);
+		}
+
+	};
+
+	exports.storeMixin = storeMixin;
+	exports.default = store;
 
 /***/ }
 /******/ ]);

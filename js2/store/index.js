@@ -38,46 +38,65 @@ var store = new Store()
 var storeMixin = {
   init: function() {
   	this._store = store
+  	var self = this
 
     if(!this.updater)
-    	throw ("this.updater needs to be defined")
+    	throw ("this.updater(store, actionType, data) needs to be defined")
+
+    if(!this.handler)
+    	throw ("this.handler(oldData, newData) needs to be defined")
     
     if(!this.path || !this.path.length)
   		throw ("this.path needs to be defined")
   	
     this.on('mount', function(){
-    	this.currentData = this.getData(store.getStore())
+    	self.currentData = self.getData(store.getStore())
     	
     	store.on('update', function(){
-    		var newData = this.getData(store.getStore())
-    		if(newData !== this.currentData){
-    			this.currentData = newData
-    			this.update()
+    		
+    		var newData = self.getData(store.getStore())
+    		var oldData = self.currentData
+    		
+    		if(newData !== oldData){
+    			self.currentData = newData
+    			
+    			self.handler(oldData, newData)
+
+    			self.update()
     		}
     	})
 
     	store.on('action', function(actionType, data){
-    		var storeData = this.getData(store.getStore())
-    		var updatedStoreData = this.updater(actionType, data, storeData)
+    		var storeData = self.getData(store.getStore())
+    		var updatedStoreData = self.updater(storeData, actionType, data )
 
     		if(updatedStoreData !== storeData){
     			var newObject = {}
-    				newObject[this.path] = updatedStoreData
+    				newObject[self.path] = updatedStoreData
+
     			var newStoreData = Object.assign({}, store.getStore(), newObject)
+
+    			if (newStoreData === undefined)
+    				thrown ("updater must return the store")
 
     			store.update(newStoreData)
     		}
 
     	})
 
+  	})
   },
 
-  dispatch : function(action, data) {
-    store.dispatch(action)
+  dispatch : function(action) {
+  	var actionType = action.type
+  	var data = action.data
+
+  	if(!actionType)
+  		throw ("{type:'ACTION_TYPE'} must be defined")
+  	
+    store.dispatch(actionType, data)
   },
   getData: function(newStore){
-  
-
   	return store.getStore()[this.path]
   }
 

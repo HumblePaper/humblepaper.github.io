@@ -8122,10 +8122,78 @@
 
 	var _store = __webpack_require__(302);
 
-	riot.tag2('login', '<form class="ui form" id="signinForm" onsubmit="{this.loginUser}"> <h4 class="ui dividing header">Login</h4> <div> <div class="field"> <label>Username</label> <input type="text" name="username" placeholder="username"> </div> <div class="field"> <label>Password</label> <input type="password" name="password" placeholder="password"> </div> <button __disabled="{loading}" class="{loading: loading, ui: true, button: true}" type="submit" form="signinForm" value="Submit">SignIn</button> </div> </form>', '', '', function (opts) {
+	riot.tag2('login', '<form class="ui form" id="signinForm" onsubmit="{this.loginUser}"> <h4 class="ui dividing header">Login</h4> <div> <div class="field"> <label>Username</label> <input type="text" name="username" placeholder="username"> </div> <div class="field"> <label>Password</label> <input type="password" name="password" placeholder="password"> </div> <button __disabled="{this.currentData.loading}" class="{loading: this.currentData.loading, ui: true, button: true}" type="submit" form="signinForm" value="Submit">SignIn</button> </div> </form>', '', '', function (opts) {
+	  var self = this;
 
-	  this.mixin(_store.storeMixin);
-	  this.on('mount', function () {});
+	  var actions = {
+	    'NOT_LOGGED_IN': 'NOT_LOGGED_IN',
+	    'LOGIN_REQUESTED': 'LOGIN_REQUESTED',
+	    'LOGIN_REQUESTED_SUCCESS': 'LOGIN_REQUESTED_SUCCESS',
+	    'LOGIN_REQUESTED_FAILED': 'LOGIN_REQUESTED_FAILED',
+	    'LOGIN_SUCCESS': 'LOGIN_SUCCESS',
+	    'LOGIN_FAILED': 'LOGIN_FAILED'
+
+	  };
+
+	  var initialData = {
+	    loading: false,
+	    username: "",
+	    password: "",
+	    status: actions.NOT_LOGGED_IN
+
+	  };
+
+	  // ------- DEFINE ACTIONS ----------
+
+	  var login = function login() {
+	    var username = self.username.value;
+	    var password = self.password.value;
+
+	    return {
+	      type: actions.LOGIN_REQUESTED,
+	      data: {
+	        username: username,
+	        password: password,
+	        loading: true
+	      }
+	    };
+	  };
+
+	  self.loginUser = function () {
+	    self.dispatch(login());
+	  };
+
+	  // ------- DEFINE KEY  (the key in store)  ----------
+
+	  self.path = "login";
+
+	  // ------- UPDATER ---------
+
+	  // try to make it Immutable
+	  self.updater = function () {
+	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+	    var actionType = arguments[1];
+	    var data = arguments[2];
+
+	    console.log('updater', store, actionType, data);
+
+	    switch (actionType) {
+	      case actions.LOGIN_REQUESTED:
+	        var newStore = Object.assign({}, store, data, { status: actionType });
+	        return newStore;
+
+	      default:
+	        return store;
+	    }
+	  };
+
+	  // ------- HANDLER (to handel data changes ) ---------
+
+	  self.handler = function (oldData, newData) {
+	    console.log('handler', 'old', oldData, 'new', newData);
+	  };
+
+	  self.mixin(_store.storeMixin);
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
@@ -10791,57 +10859,99 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	  value: true
 	});
 	var riot = __webpack_require__(300);
 
 	function Store() {
-		var _store = {};
-		var isDispatching = false;
+	  var _store = {};
+	  var isDispatching = false;
 
-		riot.observable(this);
+	  riot.observable(this);
 
-		this.dispatch = function (actionType, data) {
-			this.trigger('action', actionType, data);
-		};
+	  this.dispatch = function (actionType, data) {
+	    this.trigger('action', actionType, data);
+	  };
 
-		this.getStore = function () {
-			return _store;
-		};
+	  this.getStore = function () {
+	    return _store;
+	  };
 
-		this.update = function (store) {
-			if (store !== _store) {
-				_store = store;
-				this.trigger('update', _store);
-			}
-		};
+	  this.update = function (store) {
+	    if (store !== _store) {
+	      _store = store;
+	      this.trigger('update', _store);
+	    }
+	  };
 
-		this.on('action', function (actionType, data) {
-			console.log('action', actionType, data);
-		});
+	  this.on('action', function (actionType, data) {
+	    console.log('action', actionType, data);
+	  });
 
-		this.on('update', function () {
-			console.log('update ', this.getStore());
-		});
+	  this.on('update', function () {
+	    console.log('update ', this.getStore());
+	  });
 	}
 
 	var store = new Store();
 
 	var storeMixin = {
-		init: function init() {
-			this._store = store;
-			this.on('mount', function () {
-				console.log('mount');
-			});
-		},
+	  init: function init() {
+	    this._store = store;
+	    var self = this;
 
-		dispatch: function dispatch(action, data) {
-			store.dispatch(action);
-		},
+	    if (!this.updater) throw "this.updater(store, actionType, data) needs to be defined";
 
-		updateStore: function updateStore(newStore) {
-			store.update(newStore);
-		}
+	    if (!this.handler) throw "this.handler(oldData, newData) needs to be defined";
+
+	    if (!this.path || !this.path.length) throw "this.path needs to be defined";
+
+	    this.on('mount', function () {
+	      self.currentData = self.getData(store.getStore());
+
+	      store.on('update', function () {
+
+	        var newData = self.getData(store.getStore());
+	        var oldData = self.currentData;
+
+	        if (newData !== oldData) {
+	          self.currentData = newData;
+
+	          self.handler(oldData, newData);
+
+	          self.update();
+	        }
+	      });
+
+	      store.on('action', function (actionType, data) {
+	        var storeData = self.getData(store.getStore());
+	        var updatedStoreData = self.updater(storeData, actionType, data);
+
+	        if (updatedStoreData !== storeData) {
+	          var newObject = {};
+	          newObject[self.path] = updatedStoreData;
+
+	          var newStoreData = Object.assign({}, store.getStore(), newObject);
+
+	          if (newStoreData === undefined) thrown("updater must return the store");
+
+	          store.update(newStoreData);
+	        }
+	      });
+	    });
+	  },
+
+	  dispatch: function dispatch(action) {
+	    var actionType = action.type;
+	    var data = action.data;
+
+	    if (!actionType) throw "{type:'ACTION_TYPE'} must be defined";
+
+	    store.dispatch(actionType, data);
+	  },
+	  getData: function getData(newStore) {
+	    return store.getStore()[this.path];
+	  }
 
 	};
 

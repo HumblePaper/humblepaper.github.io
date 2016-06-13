@@ -1,5 +1,16 @@
 import store from '../store'
+var API_ROOT = 'http://api.termsheet.io/'
+
+var checkForMacaroon = function(data){
+	if(data.macaroon)
+		if(data.macaroon.macaroon !== "" || data.macaroon.macaroon !== undefined)
+			return true
+
+	return false
+}
+
 var callAPI = function(endpoint, methord='GET', payload){
+	var endpoint = API_ROOT + endpoint
 
 	var header = {}
 
@@ -10,8 +21,15 @@ var callAPI = function(endpoint, methord='GET', payload){
 	}
 
 	if(payload){
-		header['Content-Type']: 'application/json'
+		header['Content-Type'] =  'application/json'
+		apiConfig['body'] = JSON.stringify(payload)
 	}
+
+	if(checkForMacaroon(store.getStore())){
+
+	}
+
+
 
 	return fetch(endpoint, apiConfig).then(response => {
 		if (response.status >= 400)

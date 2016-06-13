@@ -18,7 +18,7 @@ function Store() {
 	this.update =  function(store) {
 		if(store !== _store){
 			_store = store 
-			setTimeout(this.trigger('update', _store), 200)
+			setTimeout(this.trigger('update', _store))
 		}
 	}
 
@@ -100,6 +100,10 @@ var storeMixin = {
   },
   getData: function(newStore){
   	return store.getStore()[this.path]
+  },
+  getStatus: function(storeData){
+    if(storeData)
+      return storeData.status
   }
 
 }

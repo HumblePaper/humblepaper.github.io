@@ -52,6 +52,8 @@
 
 	__webpack_require__(303);
 
+	__webpack_require__(305);
+
 	var _store = __webpack_require__(302);
 
 	var _store2 = _interopRequireDefault(_store);
@@ -8194,7 +8196,7 @@
 	  // ------- HANDLER (to handel data changes ) ---------
 
 	  self.handler = function (oldData, newData) {
-	    console.log('handler', 'old', oldData, 'new', newData);
+	    console.log(self.path, 'handler', 'old', oldData, 'new', newData);
 	  };
 
 	  self.mixin(_store.storeMixin);
@@ -10884,7 +10886,7 @@
 	  this.update = function (store) {
 	    if (store !== _store) {
 	      _store = store;
-	      setTimeout(this.trigger('update', _store), 200);
+	      setTimeout(this.trigger('update', _store));
 	    }
 	  };
 
@@ -10957,6 +10959,9 @@
 	  },
 	  getData: function getData(newStore) {
 	    return store.getStore()[this.path];
+	  },
+	  getStatus: function getStatus(storeData) {
+	    if (storeData) return storeData.status;
 	  }
 
 	};
@@ -10972,6 +10977,8 @@
 
 	var _store = __webpack_require__(302);
 
+	var _api = __webpack_require__(304);
+
 	riot.tag2('macaroon', '', '', '', function (opts) {
 	  var self = this;
 
@@ -10986,9 +10993,22 @@
 	    macaroon: ""
 	  };
 
+	  var setAnonymousMacaroon = function setAnonymousMacaroon(macaroonObject) {
+	    return {
+	      type: actions.NEW_MACAROON,
+	      data: {
+	        macaroon: macaroonObject.Authorization
+	      }
+	    };
+	  };
+
 	  // ------- DEFINE ACTIONS ----------
 
-	  var getAnonymousMacaroon = function getAnonymousMacaroon() {};
+	  var getAnonymousMacaroon = function getAnonymousMacaroon() {
+	    (0, _api.callAPI)('get_anonymous_token', 'get').then(function (json) {
+	      return self.dispatch(setAnonymousMacaroon(json));
+	    });
+	  };
 
 	  // ------- DEFINE KEY  (the key in store)  ----------
 
@@ -11000,14 +11020,197 @@
 	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
 	    var actionType = arguments[1];
 	    var data = arguments[2];
+
+	    switch (actionType) {
+	      case actions.NEW_MACAROON:
+	        return Object.assign({}, store, { status: actionType, macaroon: data.macaroon });
+	      case actions.MACAROON_SET:
+	        return Object.assign({}, store, { status: actionType });
+	      default:
+	        return store;
+
+	    }
 	  };
 
 	  // ------- HANDLER ---------
-	  self.handler = function (oldData, newData) {};
+	  self.handler = function (oldData, newData) {
+	    console.log(self.path, 'handler', 'old', self.getStatus(oldData), 'new', self.getStatus(newData), 'boolean', self.getStatus(oldData) !== self.getStatus(newData));
+
+	    if (self.getStatus(oldData) !== self.getStatus(newData)) {
+
+	      switch (self.getStatus(newData)) {
+	        case actions.NEW_MACAROON:
+	          // set COOKIEE
+	          console.log('macaroon', 'dispatch', 'MACAROON_SET');
+	          self.dispatch({ type: actions.MACAROON_SET });
+
+	        case actions.MACAROON_SET:
+	          self.dispatch({ type: 'POLLER_START' });
+
+	      }
+	    }
+	  };
 
 	  self.on('storeMount', function () {
 	    console.log('store mounted');
+
+	    // check for macaroon cookiee
+
+	    getAnonymousMacaroon();
 	  });
+
+	  self.mixin(_store.storeMixin);
+	});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
+
+/***/ },
+/* 304 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.performJob = exports.callAPI = undefined;
+
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	var _store = __webpack_require__(302);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var API_ROOT = 'http://api.termsheet.io/';
+
+	var callAPI = function callAPI(endpoint) {
+		var methord = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
+		var payload = arguments[2];
+
+		var endpoint = API_ROOT + endpoint;
+
+		var header = {};
+
+		var apiConfig = {
+			mode: 'cors',
+			methord: methord,
+			header: header
+		};
+
+		if (payload) {
+			header['Content-Type'] = 'application/json';
+			apiConfig['body'] = JSON.stringify(payload);
+		}
+
+		return fetch(endpoint, apiConfig).then(function (response) {
+			if (response.status >= 400) throw { status: response.status, data: response.json() };
+
+			return response.json();
+		});
+	};
+
+	var performJob = function performJob(endpoint) {
+		var methord = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
+		var payload = arguments[2];
+		var actions = arguments[3];
+
+		var _actions = _slicedToArray(actions, 4);
+
+		var successRequest = _actions[0];
+		var failedRequest = _actions[1];
+		var success = _actions[2];
+		var failed = _actions[3];
+
+		return callAPI(endpoint, methord, payload).then(function (json) {
+			var jobObject = Object.assign({}, json, { success: success, failed: failed });
+
+			_store2.default.dispatch(successRequest);
+			_store2.default.dispatch('ADD_JOB', jobObject);
+		}).catch(function (data) {
+			return _store2.default.dispatch(failedRequest, data);
+		});
+	};
+
+	exports.callAPI = callAPI;
+	exports.performJob = performJob;
+
+/***/ },
+/* 305 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	var _api = __webpack_require__(304);
+
+	var _store = __webpack_require__(302);
+
+	riot.tag2('poller', '', '', '', function (opts) {
+
+	  var self = this;
+
+	  var actions = {
+	    POLLER_START: 'POLLER_START',
+	    POLLER_NOT_RUNNING: 'POLLER_NOT_RUNNING',
+	    POLLER_RUNNING: 'POLLER_RUNNING'
+	  };
+
+	  var initialData = {
+	    status: actions.POLLER_NOT_RUNNING,
+	    time: 500
+	  };
+	  // --- PATH ---
+
+	  self.path = 'poller';
+
+	  // --- Actions ----
+	  var poll = function poll() {
+	    (0, _api.callAPI)('data.json').then(function (json) {
+	      console.log('poll', json);
+	      setTimeout(poll, self.currentData.time);
+	    }).catch(function (json) {
+	      console.log('poll', json);
+	      setTimeout(poll, self.currentData.time);
+	    });
+	  };
+
+	  var startPoller = function startPoller() {
+	    poll();
+
+	    return {
+	      type: actions.POLLER_RUNNING
+	    };
+	  };
+
+	  // --- UPDATER ---
+
+	  self.updater = function () {
+	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+	    var actionType = arguments[1];
+	    var data = arguments[2];
+
+	    console.log(self.path, 'updater', store, actionType, data);
+	    switch (actionType) {
+	      case actions.POLLER_START:
+	        var newStore = Object.assign({}, store, { status: actionType });
+	        return newStore;
+	      case actions.POLLER_RUNNING:
+	        var newStore = Object.assign({}, store, { status: actionType });
+	        return newStore;
+
+	      default:
+	        return store;
+	    }
+	  };
+
+	  // --- Handler ---
+	  self.handler = function (oldData, newData) {
+	    if (self.getStatus(oldData) !== self.getStatus(newData)) switch (self.getStatus(newData)) {
+	      case actions.POLLER_START:
+	        if (self.getStatus(oldData) !== actions.POLLER_RUNNING) self.dispatch(startPoller());else self.dispatch({ type: actions.POLLER_RUNNING });
+
+	    }
+	  };
 
 	  self.mixin(_store.storeMixin);
 	});

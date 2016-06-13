@@ -17,13 +17,22 @@ import {callAPI} from '../api'
   		 	macaroon: ""
   		 }
 
+      var setAnonymousMacaroon = function (macaroonObject) {
+        return {
+          type: actions.NEW_MACAROON,
+          data: {
+            macaroon: macaroonObject.Authorization 
+          }
+        }
+      }
+
   		// ------- DEFINE ACTIONS ----------
 
   		var getAnonymousMacaroon = function(){
         callAPI('get_anonymous_token', 'get')
-          .then()
+          .then((json) => self.dispatch(setAnonymousMacaroon(json)))
 
-  		};
+  		}
 
   		// ------- DEFINE KEY  (the key in store)  ----------
   			  
@@ -32,11 +41,37 @@ import {callAPI} from '../api'
   		// ------- UPDATER ---------
   		// try to make it Immutable 
     	self.updater = function(store = initialData, actionType, data){
+        switch(actionType){
+          case actions.NEW_MACAROON:
+            return Object.assign({}, store, { status: actionType, macaroon:data.macaroon })
+          case actions.MACAROON_SET:
+            return Object.assign({}, store, { status: actionType })
+          default:
+            return store
+
+        }
     			
     	}
 
       // ------- HANDLER ---------
       self.handler = function(oldData, newData){
+        console.log(self.path, 'handler', 'old', self.getStatus(oldData), 'new', self.getStatus(newData), 'boolean', self.getStatus(oldData) !== self.getStatus(newData) )
+
+
+        if(self.getStatus(oldData) !== self.getStatus(newData)){
+
+          switch(self.getStatus(newData)){
+            case actions.NEW_MACAROON:
+              // set COOKIEE
+              console.log('macaroon', 'dispatch', 'MACAROON_SET')
+              self.dispatch({ type: actions.MACAROON_SET })
+
+            case actions.MACAROON_SET:
+              self.dispatch({ type: 'POLLER_START'})
+
+          }
+
+        }
 
       }
 
@@ -51,8 +86,7 @@ import {callAPI} from '../api'
 
 
       self.mixin(storeMixin)
+        
 
-
-		
 	</script>
 </macaroon>

@@ -87,7 +87,7 @@ import {storeMixin} from '../store'
   			  // ------- HANDLER (to handel data changes ) ---------
 
   			  self.handler = function(oldData, newData){
-  			  	console.log('handler', 'old', oldData, 'new', newData )
+  			  	console.log(self.path, 'handler', 'old', oldData, 'new', newData )
   			  	
 
   			  }

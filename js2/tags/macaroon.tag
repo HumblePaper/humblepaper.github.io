@@ -1,4 +1,8 @@
+import {storeMixin} from '../store'
+import {callAPI} from '../api'
+
 <macaroon>
+
 	<script>
   		 var self = this
 
@@ -16,20 +20,37 @@
   		// ------- DEFINE ACTIONS ----------
 
   		var getAnonymousMacaroon = function(){
+        callAPI('get_anonymous_token', 'get')
+          .then()
 
   		};
 
   		// ------- DEFINE KEY  (the key in store)  ----------
   			  
-  		self.path = "login"
+  		self.path = "macaroon"
 
-		// ------- UPDATER ---------
-		// try to make it Immutable 
-  		self.updater = function(store = initialData, actionType, data){
-  			
-  		}
+  		// ------- UPDATER ---------
+  		// try to make it Immutable 
+    	self.updater = function(store = initialData, actionType, data){
+    			
+    	}
+
+      // ------- HANDLER ---------
+      self.handler = function(oldData, newData){
+
+      }
+
+      self.on('storeMount', function() {
+        console.log('store mounted')
+
+        // check for macaroon cookiee
+
+        getAnonymousMacaroon()
+      })
 
 
+
+      self.mixin(storeMixin)
 
 
 		

@@ -50,6 +50,8 @@
 
 	__webpack_require__(299);
 
+	__webpack_require__(303);
+
 	var _store = __webpack_require__(302);
 
 	var _store2 = _interopRequireDefault(_store);
@@ -59,6 +61,8 @@
 	var riot = __webpack_require__(300);
 
 	console.log('store', _store2.default);
+
+	riot.mount('*');
 
 	riot.mount('#view', 'login');
 
@@ -10880,7 +10884,7 @@
 	  this.update = function (store) {
 	    if (store !== _store) {
 	      _store = store;
-	      this.trigger('update', _store);
+	      setTimeout(this.trigger('update', _store), 200);
 	    }
 	  };
 
@@ -10938,6 +10942,8 @@
 	          store.update(newStoreData);
 	        }
 	      });
+
+	      self.trigger('storeMount');
 	    });
 	  },
 
@@ -10957,6 +10963,55 @@
 
 	exports.storeMixin = storeMixin;
 	exports.default = store;
+
+/***/ },
+/* 303 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	var _store = __webpack_require__(302);
+
+	riot.tag2('macaroon', '', '', '', function (opts) {
+	  var self = this;
+
+	  var actions = {
+	    MACAROON_NOT_SET: 'MACAROON_NOT_SET',
+	    MACAROON_SET: 'MACAROON_SET',
+	    NEW_MACAROON: 'NEW_MACAROON'
+	  };
+
+	  var initialData = {
+	    status: actions.MACAROON_NOT_SET,
+	    macaroon: ""
+	  };
+
+	  // ------- DEFINE ACTIONS ----------
+
+	  var getAnonymousMacaroon = function getAnonymousMacaroon() {};
+
+	  // ------- DEFINE KEY  (the key in store)  ----------
+
+	  self.path = "macaroon";
+
+	  // ------- UPDATER ---------
+	  // try to make it Immutable
+	  self.updater = function () {
+	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+	    var actionType = arguments[1];
+	    var data = arguments[2];
+	  };
+
+	  // ------- HANDLER ---------
+	  self.handler = function (oldData, newData) {};
+
+	  self.on('storeMount', function () {
+	    console.log('store mounted');
+	  });
+
+	  self.mixin(_store.storeMixin);
+	});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
 /***/ }
 /******/ ]);

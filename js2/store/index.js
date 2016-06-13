@@ -18,7 +18,7 @@ function Store() {
 	this.update =  function(store) {
 		if(store !== _store){
 			_store = store 
-			this.trigger('update', _store)
+			setTimeout(this.trigger('update', _store), 200)
 		}
 	}
 
@@ -83,6 +83,8 @@ var storeMixin = {
     		}
 
     	})
+
+      self.trigger('storeMount')
 
   	})
   },

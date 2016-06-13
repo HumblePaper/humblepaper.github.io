@@ -50,9 +50,9 @@
 
 	__webpack_require__(299);
 
-	__webpack_require__(303);
+	__webpack_require__(307);
 
-	__webpack_require__(305);
+	__webpack_require__(308);
 
 	var _store = __webpack_require__(302);
 
@@ -8128,6 +8128,8 @@
 
 	var _store = __webpack_require__(302);
 
+	var _api = __webpack_require__(303);
+
 	riot.tag2('login', '<form class="ui form" id="signinForm" onsubmit="{this.loginUser}"> <h4 class="ui dividing header">Login</h4> <div> <div class="field"> <label>Username</label> <input type="text" name="username" placeholder="username"> </div> <div class="field"> <label>Password</label> <input type="password" name="password" placeholder="password"> </div> <button __disabled="{this.currentData.loading}" class="{loading: this.currentData.loading, ui: true, button: true}" type="submit" form="signinForm" value="Submit">SignIn</button> </div> </form>', '', '', function (opts) {
 	  var self = this;
 
@@ -8154,6 +8156,10 @@
 	  var login = function login() {
 	    var username = self.username.value;
 	    var password = self.password.value;
+
+	    var loginActions = [actions.LOGIN_REQUESTED_SUCCESS, actions.LOGIN_REQUESTED_FAILED, actions.LOGIN_SUCCESS, actions.LOGIN_FAILED];
+
+	    (0, _api.performJob)('login', 'POST', { username: username, password: password }, loginActions);
 
 	    return {
 	      type: actions.LOGIN_REQUESTED,
@@ -8187,6 +8193,12 @@
 	      case actions.LOGIN_REQUESTED:
 	        var newStore = Object.assign({}, store, data, { status: actionType });
 	        return newStore;
+	      case actions.LOGIN_REQUESTED_SUCCESS:
+	        var newStore = Object.assign({}, store, data, { status: actionType });
+	        return newStore;
+	      case actions.LOGIN_SUCCESS:
+	        var newStore = Object.assign({}, store, data, { status: actionType }, { loading: false });
+	        return newStore;
 
 	      default:
 	        return store;
@@ -8197,6 +8209,14 @@
 
 	  self.handler = function (oldData, newData) {
 	    console.log(self.path, 'handler', 'old', oldData, 'new', newData);
+
+	    if (self.getStatus(oldData) !== self.getStatus(newData)) {
+
+	      switch (self.getStatus(newData)) {
+	        case actions.LOGIN_SUCCESS:
+
+	      }
+	    }
 	  };
 
 	  self.mixin(_store.storeMixin);
@@ -10973,11 +10993,734 @@
 /* 303 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.performJob = exports.callAPI = undefined;
+
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	var _store = __webpack_require__(302);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	var _fetchMock = __webpack_require__(304);
+
+	var _fetchMock2 = _interopRequireDefault(_fetchMock);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	var API_ROOT = 'http://api.termsheet.io/';
+
+	var remote = true;
+	if (!remote) {
+		var tempArray = [];
+		_fetchMock2.default.mock('http://api.termsheet.io/login', 'POST', function (url, opts) {
+			var jobId = 'something';
+
+			if (url === 'http://api.termsheet.io/login') {
+				tempArray.push({
+					jobId: jobId,
+					status: 200,
+					data: {
+						macaroon: 'asdfghjkjhgfasdfghjklkgfsdfghjk'
+					}
+				});
+			}
+
+			return {
+				jobId: jobId
+			};
+		}).mock('http://api.termsheet.io/data.json', 'GET', function (url, opts) {
+			if (tempArray.length) {
+				var temp = tempArray.pop();
+				return tempArray.pop();
+			}
+			return {};
+		});
+	}
+
+	var checkForMacaroon = function checkForMacaroon(data) {
+		if (data.macaroon) if (data.macaroon.macaroon !== "" || data.macaroon.macaroon !== undefined) return true;
+
+		return false;
+	};
+
+	var getMacaroon = function getMacaroon(data) {
+		return data.macaroon.macaroon;
+	};
+
+	// var callAPI = function(endpoint, method = 'GET', payload){
+	// 	var endpoint = API_ROOT + endpoint
+
+	// 	var header = {}
+
+	// 	var apiConfig = {
+	// 		 mode: 'cors',
+	// 		 method,
+	// 		 header
+	// 	}
+
+	// 	if(payload){
+	// 		header['Content-Type'] =  'application/json'
+	// 		apiConfig['body'] = JSON.stringify(payload)
+	// 	}
+
+	// 	if(checkForMacaroon(store.getStore())){
+	// 		console.log('-------')
+	// 		header['Authorization'] = getMacaroon(store.getStore())
+	// 		header['Access-Control-Allow-Headers'] = 'AUTHORIZATION'
+	// 		header['Access-Control-Allow-Origin'] = API_ROOT
+
+	// 	}
+
+	// 	return fetch(endpoint, apiConfig).then(response => {
+	// 		if (response.status >= 400)
+	// 			throw { status:response.status}
+
+	// 		return response.json()
+
+	// 	})
+	// }
+
+	var callAPI = function callAPI(endpoint) {
+		var _apiConfig;
+
+		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
+		var payload = arguments[2];
+
+		var endpoint = API_ROOT + endpoint;
+
+		var header = {};
+
+		var apiConfig = (_apiConfig = {
+			crossDomain: 'cors',
+			method: method,
+			header: header
+		}, _defineProperty(_apiConfig, 'crossDomain', true), _defineProperty(_apiConfig, "async", true), _defineProperty(_apiConfig, "url", endpoint), _defineProperty(_apiConfig, "processData", false), _apiConfig);
+
+		if (payload) {
+			header['Content-Type'] = 'application/json';
+			apiConfig['data'] = JSON.stringify(payload);
+		}
+
+		if (checkForMacaroon(_store2.default.getStore())) {
+			console.log('-------');
+			header['Authorization'] = getMacaroon(_store2.default.getStore());
+			header['Access-Control-Allow-Headers'] = 'AUTHORIZATION';
+			header['Access-Control-Allow-Origin'] = API_ROOT;
+		}
+
+		return $.ajax(apiConfig).then(function (response) {
+			console.log('response', response);
+			// if (response.status >= 400)
+			// 	throw { status:response.status}
+
+			return response;
+		});
+	};
+	var performJob = function performJob(endpoint) {
+		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
+		var payload = arguments[2];
+		var actions = arguments[3];
+
+		var _actions = _slicedToArray(actions, 4);
+
+		var successRequest = _actions[0];
+		var failedRequest = _actions[1];
+		var success = _actions[2];
+		var failed = _actions[3];
+
+
+		return callAPI(endpoint, method, payload).then(function (json) {
+			var jobObject = Object.assign({}, json, { success: success, failed: failed });
+
+			_store2.default.dispatch(successRequest);
+			_store2.default.dispatch('ADD_JOB', jobObject);
+		}).catch(function (data) {
+			return _store2.default.dispatch(failedRequest, data);
+		});
+	};
+
+	exports.callAPI = callAPI;
+	exports.performJob = performJob;
+
+/***/ },
+/* 304 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var FetchMock = __webpack_require__(305);
+	var statusTextMap = __webpack_require__(306);
+
+	module.exports = new FetchMock({
+		theGlobal: window,
+		Request: window.Request,
+		Response: window.Response,
+		Headers: window.Headers,
+		statusTextMap: statusTextMap
+	});
+
+/***/ },
+/* 305 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Headers = void 0;
+	var Request = void 0;
+	var Response = void 0;
+	var stream = void 0;
+	var theGlobal = void 0;
+	var statusTextMap = void 0;
+
+	/**
+	 * mockResponse
+	 * Constructs a Response object to return from the mocked fetch
+	 * @param  {String} url    url parameter fetch was called with
+	 * @param  {Object} config configuration for the response to be constructed
+	 * @return {Promise}       Promise for a Response object (or a rejected response to imitate network failure)
+	 */
+	function mockResponse(url, responseConfig, fetchOpts) {
+
+		// It seems odd to call this in here even though it's already called within fetchMock
+		// It's to handle the fact that because we want to support making it very easy to add a
+		// delay to any sort of response (including responses which are defined with a function)
+		// while also allowing function responses to return a Promise for a response config.
+		if (typeof responseConfig === 'function') {
+			responseConfig = responseConfig(url, fetchOpts);
+		}
+
+		if (responseConfig.throws) {
+			return Promise.reject(responseConfig.throws);
+		}
+
+		if (typeof responseConfig === 'number') {
+			responseConfig = {
+				status: responseConfig
+			};
+		} else if (typeof responseConfig === 'string' || !(responseConfig.body || responseConfig.headers || responseConfig.throws || responseConfig.status)) {
+			responseConfig = {
+				body: responseConfig
+			};
+		}
+
+		var opts = responseConfig.opts || {};
+		opts.url = url;
+		opts.sendAsJson = responseConfig.sendAsJson === undefined ? true : responseConfig.sendAsJson;
+		opts.status = responseConfig.status || 200;
+		opts.statusText = statusTextMap['' + opts.status];
+		// The ternary operator is to cope with new Headers(undefined) throwing in Chrome
+		// https://code.google.com/p/chromium/issues/detail?id=335871
+		opts.headers = responseConfig.headers ? new Headers(responseConfig.headers) : new Headers();
+
+		var body = responseConfig.body;
+		if (opts.sendAsJson && responseConfig.body != null && (typeof body === 'undefined' ? 'undefined' : _typeof(body)) === 'object') {
+			//eslint-disable-line
+			body = JSON.stringify(body);
+		}
+
+		if (stream) {
+			var s = new stream.Readable();
+			if (body != null) {
+				//eslint-disable-line
+				s.push(body, 'utf-8');
+			}
+			s.push(null);
+			body = s;
+		}
+
+		return Promise.resolve(new Response(body, opts));
+	}
+
+	/**
+	 * normalizeRequest
+	 * Given the parameters fetch was called with, normalises Request or url + options pairs
+	 * to a standard container object passed to matcher functions
+	 * @param  {String|Request} url
+	 * @param  {Object} 				options
+	 * @return {Object}         {url, method}
+	 */
+	function normalizeRequest(url, options) {
+		if (Request.prototype.isPrototypeOf(url)) {
+			return {
+				url: url.url,
+				method: url.method
+			};
+		} else {
+			return {
+				url: url,
+				method: options && options.method || 'GET'
+			};
+		}
+	}
+
+	/**
+	 * compileRoute
+	 * Given a route configuration object, validates the object structure and compiles
+	 * the object into a {name, matcher, response} triple
+	 * @param  {Object} route route config
+	 * @return {Object}       {name, matcher, response}
+	 */
+	function compileRoute(route) {
+
+		if (typeof route.response === 'undefined') {
+			throw new Error('Each route must define a response');
+		}
+
+		if (!route.matcher) {
+			throw new Error('each route must specify a string, regex or function to match calls to fetch');
+		}
+
+		if (!route.name) {
+			route.name = route.matcher.toString();
+			route.__unnamed = true;
+		}
+
+		// If user has provided a function as a matcher we assume they are handling all the
+		// matching logic they need
+		if (typeof route.matcher === 'function') {
+			return route;
+		}
+
+		var expectedMethod = route.method && route.method.toLowerCase();
+
+		function matchMethod(method) {
+			return !expectedMethod || expectedMethod === (method ? method.toLowerCase() : 'get');
+		};
+
+		var matchUrl = void 0;
+
+		if (typeof route.matcher === 'string') {
+
+			if (route.matcher.indexOf('^') === 0) {
+				(function () {
+					var expectedUrl = route.matcher.substr(1);
+					matchUrl = function matchUrl(url) {
+						return url.indexOf(expectedUrl) === 0;
+					};
+				})();
+			} else {
+				(function () {
+					var expectedUrl = route.matcher;
+					matchUrl = function matchUrl(url) {
+						return url === expectedUrl;
+					};
+				})();
+			}
+		} else if (route.matcher instanceof RegExp) {
+			(function () {
+				var urlRX = route.matcher;
+				matchUrl = function matchUrl(url) {
+					return urlRX.test(url);
+				};
+			})();
+		}
+
+		route.matcher = function (url, options) {
+			var req = normalizeRequest(url, options);
+			return matchMethod(req.method) && matchUrl(req.url);
+		};
+
+		return route;
+	}
+
+	var FetchMock = function () {
+		/**
+	  * constructor
+	  * Sets up scoped references to configuration passed in from client/server bootstrappers
+	  * @param  {Object} opts
+	  */
+
+		function FetchMock(opts) {
+			_classCallCheck(this, FetchMock);
+
+			Headers = opts.Headers;
+			Request = opts.Request;
+			Response = opts.Response;
+			stream = opts.stream;
+			theGlobal = opts.theGlobal;
+			statusTextMap = opts.statusTextMap;
+			this.routes = [];
+			this._calls = {};
+			this._matchedCalls = [];
+			this._unmatchedCalls = [];
+			this.fetchMock = this.fetchMock.bind(this);
+			this.restore = this.restore.bind(this);
+			this.reMock = this.reMock.bind(this);
+			this.reset = this.reset.bind(this);
+		}
+
+		/**
+	  * useNonGlobalFetch
+	  * Sets fetchMock's default internal reference to native fetch to the given function
+	  * @param  {Function} func
+	  */
+
+
+		_createClass(FetchMock, [{
+			key: 'useNonGlobalFetch',
+			value: function useNonGlobalFetch(func) {
+				this.mockedContext = this;
+				this.realFetch = func;
+				return this;
+			}
+
+			/**
+	   * mock
+	   * Replaces fetch with a stub which attempts to match calls against configured routes
+	   * See README for details of parameters
+	   * @return {FetchMock}          Returns the FetchMock instance, so can be chained
+	   */
+
+		}, {
+			key: 'mock',
+			value: function mock(matcher, method, response) {
+				// Do this here rather than in the constructor to ensure it's scoped to the test
+				this.realFetch = this.realFetch || theGlobal.fetch && theGlobal.fetch.bind(theGlobal);
+				var config = void 0;
+				// Handle the variety of parameters accepted by mock (see README)
+				if (response) {
+					config = {
+						routes: [{
+							matcher: matcher,
+							method: method,
+							response: response
+						}]
+					};
+				} else if (method) {
+					config = {
+						routes: [{
+							matcher: matcher,
+							response: method
+						}]
+					};
+				} else if (matcher instanceof Array) {
+					config = {
+						routes: matcher
+					};
+				} else if (matcher && matcher.matcher) {
+					config = {
+						routes: [matcher]
+					};
+				} else {
+					config = matcher;
+				}
+
+				this.addRoutes(config.routes);
+				this.greed = config.greed || this.greed || 'none';
+				theGlobal.fetch = this.fetchMock;
+				return this;
+			}
+
+			/**
+	   * constructMock
+	   * Constructs a function which attempts to match fetch calls against routes (see constructRouter)
+	   * and handles success or failure of that attempt accordingly
+	   * @param  {Object} config See README
+	   * @return {Function}      Function expecting url + options or a Request object, and returning
+	   *                         a promise of a Response, or forwading to native fetch
+	   */
+
+		}, {
+			key: 'fetchMock',
+			value: function fetchMock(url, opts) {
+
+				var response = this.router(url, opts);
+
+				if (response) {
+
+					if (typeof response === 'function') {
+						response = response(url, opts);
+					}
+
+					if (response instanceof Promise) {
+						return response.then(function (response) {
+							return mockResponse(url, response, opts);
+						});
+					} else {
+						return mockResponse(url, response, opts);
+					}
+				} else {
+					console.warn('unmatched call to ' + url);
+					this.push(null, [url, opts]);
+					if (this.greed === 'good') {
+						return mockResponse(url, { body: 'unmocked url: ' + url });
+					} else if (this.greed === 'bad') {
+						return mockResponse(url, { throws: 'unmocked url: ' + url });
+					} else {
+						if (!this.realFetch) {
+							throw new Error('fetch not defined in this environment. To mock unmatched calls set `greed: good` in your options');
+						}
+						return this.realFetch(url, opts);
+					}
+				}
+			}
+			/**
+	   * router
+	   * Given url + options or a Request object, checks to see if ait is matched by any routes and returns
+	   * config for a response or undefined.
+	   * @param  {String|Request} url
+	   * @param  {Object}
+	   * @return {Object}
+	   */
+
+		}, {
+			key: 'router',
+			value: function router(url, opts) {
+				var route = void 0;
+				for (var i = 0, il = this.routes.length; i < il; i++) {
+					route = this.routes[i];
+					if (route.matcher(url, opts)) {
+						this.push(route.name, [url, opts]);
+						return route.response;
+					}
+				}
+			}
+
+			/**
+	   * addRoutes
+	   * Adds routes to those used by fetchMock to match fetch calls
+	   * @param  {Object|Array} routes 	route configurations
+	   */
+
+		}, {
+			key: 'addRoutes',
+			value: function addRoutes(routes) {
+
+				if (!routes) {
+					throw new Error('.mock() must be passed configuration for routes');
+				}
+
+				if (!(routes instanceof Array)) {
+					routes = [routes];
+				}
+
+				// Allows selective application of some of the preregistered routes
+				this.routes = this.routes.concat(routes.map(compileRoute));
+			}
+
+			/**
+	   * push
+	   * Records history of fetch calls
+	   * @param  {String} name Name of the route matched by the call
+	   * @param  {Array} call [url, opts] pair
+	   */
+
+		}, {
+			key: 'push',
+			value: function push(name, call) {
+				if (name) {
+					this._calls[name] = this._calls[name] || [];
+					this._calls[name].push(call);
+					this._matchedCalls.push(call);
+				} else {
+					this._unmatchedCalls.push(call);
+				}
+			}
+
+			/**
+	   * restore
+	   * Restores global fetch to its initial state and resets call history
+	   */
+
+		}, {
+			key: 'restore',
+			value: function restore() {
+				if (this.realFetch) {
+					theGlobal.fetch = this.realFetch;
+				}
+				this.reset();
+				this.routes = [];
+			}
+
+			/**
+	   * reMock
+	   * Same as .mock(), but also calls .restore() internally
+	   * @return {FetchMock}          Returns the FetchMock instance, so can be chained
+	   */
+
+		}, {
+			key: 'reMock',
+			value: function reMock() {
+				this.restore();
+				return this.mock.apply(this, [].slice.apply(arguments));
+			}
+
+			/**
+	   * getMock
+	   * Returns a reference to the stub function used to mock fetch
+	   * @return {Function}
+	   */
+
+		}, {
+			key: 'getMock',
+			value: function getMock() {
+				return this.fetchMock;
+			}
+
+			/**
+	   * reset
+	   * Resets call history
+	   */
+
+		}, {
+			key: 'reset',
+			value: function reset() {
+				this._calls = {};
+				this._matchedCalls = [];
+				this._unmatchedCalls = [];
+			}
+
+			/**
+	   * calls
+	   * Returns call history. See README
+	   */
+
+		}, {
+			key: 'calls',
+			value: function calls(name) {
+				return name ? this._calls[name] || [] : {
+					matched: this._matchedCalls,
+					unmatched: this._unmatchedCalls
+				};
+			}
+		}, {
+			key: 'lastCall',
+			value: function lastCall(name) {
+				var calls = name ? this.calls(name) : this.calls().matched;
+				if (calls && calls.length) {
+					return calls[calls.length - 1];
+				} else {
+					return undefined;
+				}
+			}
+		}, {
+			key: 'lastUrl',
+			value: function lastUrl(name) {
+				var call = this.lastCall(name);
+				return call && call[0];
+			}
+		}, {
+			key: 'lastOptions',
+			value: function lastOptions(name) {
+				var call = this.lastCall(name);
+				return call && call[1];
+			}
+
+			/**
+	   * called
+	   * Returns whether fetch has been called matching a configured route. See README
+	   */
+
+		}, {
+			key: 'called',
+			value: function called(name) {
+				if (!name) {
+					return !!this._matchedCalls.length;
+				}
+				return !!(this._calls[name] && this._calls[name].length);
+			}
+		}]);
+
+		return FetchMock;
+	}();
+
+	module.exports = FetchMock;
+
+/***/ },
+/* 306 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var statusTextMap = {
+	  '100': 'Continue',
+	  '101': 'Switching Protocols',
+	  '102': 'Processing',
+	  '200': 'OK',
+	  '201': 'Created',
+	  '202': 'Accepted',
+	  '203': 'Non-Authoritative Information',
+	  '204': 'No Content',
+	  '205': 'Reset Content',
+	  '206': 'Partial Content',
+	  '207': 'Multi-Status',
+	  '208': 'Already Reported',
+	  '226': 'IM Used',
+	  '300': 'Multiple Choices',
+	  '301': 'Moved Permanently',
+	  '302': 'Found',
+	  '303': 'See Other',
+	  '304': 'Not Modified',
+	  '305': 'Use Proxy',
+	  '307': 'Temporary Redirect',
+	  '308': 'Permanent Redirect',
+	  '400': 'Bad Request',
+	  '401': 'Unauthorized',
+	  '402': 'Payment Required',
+	  '403': 'Forbidden',
+	  '404': 'Not Found',
+	  '405': 'Method Not Allowed',
+	  '406': 'Not Acceptable',
+	  '407': 'Proxy Authentication Required',
+	  '408': 'Request Timeout',
+	  '409': 'Conflict',
+	  '410': 'Gone',
+	  '411': 'Length Required',
+	  '412': 'Precondition Failed',
+	  '413': 'Payload Too Large',
+	  '414': 'URI Too Long',
+	  '415': 'Unsupported Media Type',
+	  '416': 'Range Not Satisfiable',
+	  '417': 'Expectation Failed',
+	  '418': 'I\'m a teapot',
+	  '421': 'Misdirected Request',
+	  '422': 'Unprocessable Entity',
+	  '423': 'Locked',
+	  '424': 'Failed Dependency',
+	  '425': 'Unordered Collection',
+	  '426': 'Upgrade Required',
+	  '428': 'Precondition Required',
+	  '429': 'Too Many Requests',
+	  '431': 'Request Header Fields Too Large',
+	  '451': 'Unavailable For Legal Reasons',
+	  '500': 'Internal Server Error',
+	  '501': 'Not Implemented',
+	  '502': 'Bad Gateway',
+	  '503': 'Service Unavailable',
+	  '504': 'Gateway Timeout',
+	  '505': 'HTTP Version Not Supported',
+	  '506': 'Variant Also Negotiates',
+	  '507': 'Insufficient Storage',
+	  '508': 'Loop Detected',
+	  '509': 'Bandwidth Limit Exceeded',
+	  '510': 'Not Extended',
+	  '511': 'Network Authentication Required'
+	};
+
+	module.exports = statusTextMap;
+
+/***/ },
+/* 307 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
 
 	var _store = __webpack_require__(302);
 
-	var _api = __webpack_require__(304);
+	var _api = __webpack_require__(303);
 
 	riot.tag2('macaroon', '', '', '', function (opts) {
 	  var self = this;
@@ -11064,84 +11807,12 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
 /***/ },
-/* 304 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.performJob = exports.callAPI = undefined;
-
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	var _store = __webpack_require__(302);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var API_ROOT = 'http://api.termsheet.io/';
-
-	var callAPI = function callAPI(endpoint) {
-		var methord = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
-		var payload = arguments[2];
-
-		var endpoint = API_ROOT + endpoint;
-
-		var header = {};
-
-		var apiConfig = {
-			mode: 'cors',
-			methord: methord,
-			header: header
-		};
-
-		if (payload) {
-			header['Content-Type'] = 'application/json';
-			apiConfig['body'] = JSON.stringify(payload);
-		}
-
-		return fetch(endpoint, apiConfig).then(function (response) {
-			if (response.status >= 400) throw { status: response.status, data: response.json() };
-
-			return response.json();
-		});
-	};
-
-	var performJob = function performJob(endpoint) {
-		var methord = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
-		var payload = arguments[2];
-		var actions = arguments[3];
-
-		var _actions = _slicedToArray(actions, 4);
-
-		var successRequest = _actions[0];
-		var failedRequest = _actions[1];
-		var success = _actions[2];
-		var failed = _actions[3];
-
-		return callAPI(endpoint, methord, payload).then(function (json) {
-			var jobObject = Object.assign({}, json, { success: success, failed: failed });
-
-			_store2.default.dispatch(successRequest);
-			_store2.default.dispatch('ADD_JOB', jobObject);
-		}).catch(function (data) {
-			return _store2.default.dispatch(failedRequest, data);
-		});
-	};
-
-	exports.callAPI = callAPI;
-	exports.performJob = performJob;
-
-/***/ },
-/* 305 */
+/* 308 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
 
-	var _api = __webpack_require__(304);
+	var _api = __webpack_require__(303);
 
 	var _store = __webpack_require__(302);
 
@@ -11168,10 +11839,12 @@
 	    (0, _api.callAPI)('data.json').then(function (json) {
 	      console.log('poll', json);
 	      setTimeout(poll, self.currentData.time);
-	    }).catch(function (json) {
-	      console.log('poll', json);
-	      setTimeout(poll, self.currentData.time);
 	    });
+	    // .catch(json =>{
+	    // 	console.log('poll', json)
+	    // 	setTimeout(poll, self.currentData.time)
+
+	    // })
 	  };
 
 	  var startPoller = function startPoller() {

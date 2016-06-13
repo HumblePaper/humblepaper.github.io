@@ -28,11 +28,11 @@ import {storeMixin} from '../store'
   		 			console.log('poll', json)
   		 			setTimeout(poll, self.currentData.time)
   		 		})
-  		 		.catch(json =>{
-  		 			console.log('poll', json)
-  		 			setTimeout(poll, self.currentData.time)
+  		 		// .catch(json =>{
+  		 		// 	console.log('poll', json)
+  		 		// 	setTimeout(poll, self.currentData.time)
   		 			
-  		 		})
+  		 		// })
   		 }
 
   		 var startPoller = function(){

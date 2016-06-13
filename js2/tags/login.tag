@@ -1,4 +1,6 @@
 import {storeMixin} from '../store'
+import {performJob} from '../api'
+
 <login>
 	<form class="ui form" id="signinForm" onsubmit="{this.loginUser}">
   		  <h4 class="ui dividing header">Login</h4>
@@ -21,12 +23,12 @@ import {storeMixin} from '../store'
   			  var self = this
 
   			  var actions = {
-				'NOT_LOGGED_IN'	 			 : 'NOT_LOGGED_IN',
-				'LOGIN_REQUESTED'			 : 'LOGIN_REQUESTED',
-				'LOGIN_REQUESTED_SUCCESS'	 : 'LOGIN_REQUESTED_SUCCESS',
-				'LOGIN_REQUESTED_FAILED'	 : 'LOGIN_REQUESTED_FAILED',
-				'LOGIN_SUCCESS'	 			 : 'LOGIN_SUCCESS',
-				'LOGIN_FAILED'	 			 : 'LOGIN_FAILED'
+  				'NOT_LOGGED_IN'	 			 : 'NOT_LOGGED_IN',
+  				'LOGIN_REQUESTED'			 : 'LOGIN_REQUESTED',
+  				'LOGIN_REQUESTED_SUCCESS'	 : 'LOGIN_REQUESTED_SUCCESS',
+  				'LOGIN_REQUESTED_FAILED'	 : 'LOGIN_REQUESTED_FAILED',
+  				'LOGIN_SUCCESS'	 			 : 'LOGIN_SUCCESS',
+  				'LOGIN_FAILED'	 			 : 'LOGIN_FAILED'
 
   			  }
 
@@ -46,7 +48,13 @@ import {storeMixin} from '../store'
   			  	var password = self.password.value
 
 
+            var loginActions = [ actions.LOGIN_REQUESTED_SUCCESS,
+                                 actions.LOGIN_REQUESTED_FAILED, 
+                                 actions.LOGIN_SUCCESS,
+                                 actions.LOGIN_FAILED
+                                ]
 
+            performJob('login', 'POST', {username, password},  loginActions)
 
   			  	return {
   			  		type: actions.LOGIN_REQUESTED,
@@ -77,6 +85,12 @@ import {storeMixin} from '../store'
   			  		case actions.LOGIN_REQUESTED:
   			  			var newStore = Object.assign({}, store, data, { status : actionType })
   			  			return newStore
+              case actions.LOGIN_REQUESTED_SUCCESS:
+                var newStore = Object.assign({}, store, data, { status : actionType })
+                return newStore
+              case actions.LOGIN_SUCCESS:
+                var newStore = Object.assign({}, store, data, { status : actionType }, {loading: false})
+                return newStore
 
   			  		default:
   			  			return store
@@ -88,6 +102,17 @@ import {storeMixin} from '../store'
 
   			  self.handler = function(oldData, newData){
   			  	console.log(self.path, 'handler', 'old', oldData, 'new', newData )
+
+            if(self.getStatus(oldData) !== self.getStatus(newData)){
+
+              switch(self.getStatus(newData)){
+                case actions.LOGIN_SUCCESS:
+
+
+
+              }
+
+            }
   			  	
 
   			  }

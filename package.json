@@ -1,0 +1,43 @@
+{
+  "name": "humblepaper.github.io",
+  "version": "1.0.0",
+  "description": "",
+  "main": "karma.conf.js",
+  "dependencies": {
+    "babel-polyfill": "^6.9.1",
+    "es6-promise": "^3.2.1",
+    "isomorphic-fetch": "^2.2.1",
+    "jquery": "^2.2.4",
+    "redux": "^3.5.2",
+    "redux-logger": "^2.6.1",
+    "redux-thunk": "^2.1.0"
+  },
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-core": "^6.9.1",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "deep-freeze": "0.0.1",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-jasmine": "^1.0.2",
+    "redux-devtools": "^3.3.1",
+    "riot": "^2.4.1",
+    "riotjs-loader": "^3.0.0",
+    "tag-loader": "^0.3.0",
+    "webpack": "^1.13.1",
+    "webpack-dev-server": "^1.14.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HumblePaper/humblepaper.github.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HumblePaper/humblepaper.github.io/issues"
+  },
+  "homepage": "https://github.com/HumblePaper/humblepaper.github.io#readme"
+}

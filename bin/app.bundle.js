@@ -48,127 +48,19 @@
 
 	__webpack_require__(1);
 
-	var _reducer = __webpack_require__(299);
+	__webpack_require__(299);
 
-	var _reducer2 = _interopRequireDefault(_reducer);
+	var _store = __webpack_require__(302);
 
-	var _reduxThunk = __webpack_require__(304);
-
-	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
-
-	var _api = __webpack_require__(301);
-
-	var _api2 = _interopRequireDefault(_api);
-
-	var _pollerEvents = __webpack_require__(305);
-
-	var _action = __webpack_require__(300);
-
-	var _jobsEvent = __webpack_require__(306);
+	var _store2 = _interopRequireDefault(_store);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var Redux = __webpack_require__(307);
-	var riot = __webpack_require__(320);
+	var riot = __webpack_require__(300);
 
-	var store = Redux.createStore(_reducer2.default, Redux.applyMiddleware(_reduxThunk2.default, _api2.default));
+	console.log('store', _store2.default);
 
-	var LoginEvent = __webpack_require__(322).default;
-
-
-	(0, _api.anonymousMacaroon)();
-	window.JobsEvent = (0, _jobsEvent.jobsEvent)(riot, store);
-	window.jobsEvent = new window.JobsEvent();
-
-	window.PollerEvent = (0, _pollerEvents.pollerEvent)(riot, store);
-	window.pollerEvent = new window.PollerEvent();
-	window.pollerEvent.trigger('regester_poller_event', window.pollerEvent);
-	window.pollerEvent.trigger('regester_jobs_event', window.jobsEvent);
-
-	window.store = store;
-
-	window.LoginEvent = LoginEvent(riot, store);
-	window.loginEvent = new window.LoginEvent();
-	window.loginEvent.trigger('regester_jobs_event', window.jobsEvent);
-
-	var startLoginHandler = function startLoginHandler() {
-		function select(state) {
-			return state.login.status;
-		}
-
-		var currentState = select(store.getState());
-
-		function handleChange() {
-			var previousState = currentState;
-			currentState = select(store.getState());
-
-			if (previousState !== currentState) {
-				console.log(' startLoginHandler handleChange', previousState, 'changed to ', currentState);
-				if (currentState === _action.LoginActions.LOGIN_SUCCESS) {
-					// var loginEvent = new window.LoginEvent()
-					loginEvent.trigger('login_success');
-					riot.route('dashboard');
-				}
-			}
-		}
-
-		var unsubscribe = store.subscribe(handleChange);
-	};
-	startLoginHandler();
-
-	var startPollerHandler = function startPollerHandler() {
-		var currentState;
-
-		function handleChange() {
-
-			function select(state) {
-				return state.poller.status;
-			}
-
-			var previousState = currentState;
-			currentState = select(store.getState());
-
-			if (previousState !== currentState) {
-				console.log('PollerEvent', previousState, 'changed to ', currentState);
-				if (currentState === 'POLLER_RUNNING') {
-
-					pollerEvent.trigger('start_poller');
-				}
-			}
-		}
-
-		var unsubscribe = store.subscribe(handleChange);
-	};
-
-	startPollerHandler();
-
-	store.dispatch(_action.TS_Poller.startPoller());
-
-	__webpack_require__(323);
-	__webpack_require__(324);
-	__webpack_require__(325);
-
-	riot.route.base('/');
-	riot.mount('*');
-	riot.route.start(true);
-
-	var routes = {
-		home: function home() {
-			return riot.mount('#view', 'signuporsignin');
-		},
-		dashboard: function dashboard() {
-			return riot.mount('#view', 'dashboard');
-		}
-	};
-
-	function handler(collection, id, action) {
-		console.log('route', collection, id, action);
-		var routeFn = routes[collection || 'home'];
-		routeFn(id, action);
-	}
-
-	riot.route(handler);
-	riot.route.exec(handler);
+	riot.mount('#view', 'login');
 
 /***/ },
 /* 1 */
@@ -8226,1783 +8118,87 @@
 /* 299 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	var _store = __webpack_require__(302);
+
+	riot.tag2('login', '<form class="ui form" id="signinForm" onsubmit="{this.loginUser}"> <h4 class="ui dividing header">Login</h4> <div> <div class="field"> <label>Username</label> <input type="text" name="username" placeholder="username"> </div> <div class="field"> <label>Password</label> <input type="password" name="password" placeholder="password"> </div> <button __disabled="{this.currentData.loading}" class="{loading: this.currentData.loading, ui: true, button: true}" type="submit" form="signinForm" value="Submit">SignIn</button> </div> </form>', '', '', function (opts) {
+	  var self = this;
+
+	  var actions = {
+	    'NOT_LOGGED_IN': 'NOT_LOGGED_IN',
+	    'LOGIN_REQUESTED': 'LOGIN_REQUESTED',
+	    'LOGIN_REQUESTED_SUCCESS': 'LOGIN_REQUESTED_SUCCESS',
+	    'LOGIN_REQUESTED_FAILED': 'LOGIN_REQUESTED_FAILED',
+	    'LOGIN_SUCCESS': 'LOGIN_SUCCESS',
+	    'LOGIN_FAILED': 'LOGIN_FAILED'
+
+	  };
+
+	  var initialData = {
+	    loading: false,
+	    username: "",
+	    password: "",
+	    status: actions.NOT_LOGGED_IN
+
+	  };
+
+	  // ------- DEFINE ACTIONS ----------
+
+	  var login = function login() {
+	    var username = self.username.value;
+	    var password = self.password.value;
+
+	    return {
+	      type: actions.LOGIN_REQUESTED,
+	      data: {
+	        username: username,
+	        password: password,
+	        loading: true
+	      }
+	    };
+	  };
+
+	  self.loginUser = function () {
+	    self.dispatch(login());
+	  };
+
+	  // ------- DEFINE KEY  (the key in store)  ----------
+
+	  self.path = "login";
+
+	  // ------- UPDATER ---------
+
+	  // try to make it Immutable
+	  self.updater = function () {
+	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+	    var actionType = arguments[1];
+	    var data = arguments[2];
+
+	    console.log('updater', store, actionType, data);
+
+	    switch (actionType) {
+	      case actions.LOGIN_REQUESTED:
+	        var newStore = Object.assign({}, store, data, { status: actionType });
+	        return newStore;
+
+	      default:
+	        return store;
+	    }
+	  };
+
+	  // ------- HANDLER (to handel data changes ) ---------
+
+	  self.handler = function (oldData, newData) {
+	    console.log('handler', 'old', oldData, 'new', newData);
+	  };
+
+	  self.mixin(_store.storeMixin);
 	});
-
-	var _action = __webpack_require__(300);
-
-	var initialState = {
-	  login: { status: _action.LoginActions.NOT_LOGGED_IN },
-	  poller: { status: _action.PollerActions.POLLER_NOT_RUNNING }
-	};
-
-	function LoginApp(state, action) {
-	  console.log('REDUCER', action.type, state, action);
-	  if (typeof state === 'undefined') {
-	    return initialState;
-	  }
-
-	  switch (action.type) {
-
-	    case _action.LoginActions.LOGIN_REQUSTED:
-
-	      var obj = Object.assign({}, state.login, { status: _action.LoginActions.SIGNIN }, { username: action.username, password: action.password });
-	      var newState = Object.assign({}, state, { login: obj });
-	      return newState;
-
-	    case _action.LoginActions.LOGIN_REQUSTED_SUCCESS:
-
-	      var obj = Object.assign({}, state.login, { status: _action.LoginActions.LOGIN_REQUSTED_SUCCESS });
-	      var newState = Object.assign({}, state, { login: obj });
-	      return newState;
-
-	    case _action.LoginActions.LOGIN_SUCCESS:
-	      var obj = Object.assign({}, state.login, { status: _action.LoginActions.LOGIN_SUCCESS });
-	      var newState = Object.assign({}, state, { login: obj });
-	      return newState;
-
-	    case _action.PollerActions.POLLER_RUNNING:
-	      var obj = Object.assign({}, state.poller, { status: _action.PollerActions.POLLER_RUNNING, timeout: action.timeout });
-	      var newState = Object.assign({}, state, { poller: obj });
-	      return newState;
-
-	    default:
-	      return state;
-	  }
-	}
-
-	exports.default = LoginApp;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
 /***/ },
 /* 300 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.TS_Poller = exports.TS_Login = exports.JobsAction = exports.PollerActions = exports.LoginActions = undefined;
-	exports.addJobs = addJobs;
-
-	var _api = __webpack_require__(301);
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-	var LoginActions = exports.LoginActions = {
-		NOT_LOGGED_IN: 'NOT_LOGGED_IN',
-		LOGIN_REQUSTED: 'LOGIN_REQUSTED',
-		LOGIN_REQUSTED_SUCCESS: 'LOGIN_REQUSTED_SUCCESS',
-		LOGIN_REQUSTED_FAILED: 'LOGIN_REQUSTED_FAILED',
-		LOGIN_SUCCESS: 'LOGIN_SUCCESS',
-		LOGIN_FAILED: 'LOGIN_FAILED'
-	};
-
-	var PollerActions = exports.PollerActions = {
-		POLLER_RUNNING: 'POLLER_RUNNING',
-		POLLER_NOT_RUNNING: 'POLLER_NOT_RUNNING'
-	};
-
-	var JobsAction = exports.JobsAction = {
-		ADD_JOB: 'ADD_JOB',
-		REMOVE_JOBS: 'REMOVE_JOB'
-
-	};
-
-	var TS_Login = {};
-
-	TS_Login.requestLogin = function (username, password) {
-		return _defineProperty({}, _api.CALL_API, {
-			types: [LoginActions.LOGIN_REQUSTED, LoginActions.LOGIN_REQUSTED_SUCCESS, LoginActions.LOGIN_REQUSTED_FAILED, LoginActions.LOGIN_SUCCESS, LoginActions.LOGIN_FAILED],
-			endpoint: 'login',
-			method: 'POST',
-			payload: {
-				username: username,
-				password: password
-			}
-
-		});
-	};
-
-	function addJobs(jobId, successAction, failureAction) {
-		return {
-			type: JobsAction.ADD_JOB,
-			payload: {
-				jobId: jobId,
-				success: successAction,
-				failure: failureAction
-			}
-		};
-	}
-
-	TS_Login.login = function (username, password, store) {
-
-		(0, _api.loginAPI)(username, password).then(function (json) {
-			store.dispatch(TS_Login.loginRequsted(json));
-		});
-
-		return {
-			type: LoginActions.LOGIN_REQUSTED,
-			username: username,
-			password: password
-		};
-	};
-
-	TS_Login.loginRequsted = function (json) {
-
-		window.jobsEvent.trigger('regester_job', json.job_id, LoginActions.LOGIN_SUCCESS, LoginActions.LOGIN_FAILED);
-
-		return {
-			type: LoginActions.LOGIN_REQUSTED_SUCCESS
-		};
-	};
-
-	TS_Login.loggedIn = function (macron) {
-		return {
-			type: LoginActions.LOGIN_SUCCESS,
-			macron: macron
-		};
-	};
-
-	var TS_Poller = {};
-
-	TS_Poller.startPoller = function () {
-		var timeout = arguments.length <= 0 || arguments[0] === undefined ? 5000 : arguments[0];
-
-		console.log("startPoller");
-
-		return {
-			type: PollerActions.POLLER_RUNNING,
-			timeout: timeout
-		};
-	};
-
-	exports.TS_Login = TS_Login;
-	exports.TS_Poller = TS_Poller;
-
-/***/ },
-/* 301 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.CALL_API = exports.API_ROOT = undefined;
-
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	exports.loginAPI = loginAPI;
-	exports.anonymousMacaroon = anonymousMacaroon;
-	exports.pollerApi = pollerApi;
-
-	__webpack_require__(302);
-
-	var _action = __webpack_require__(300);
-
-	var API_ROOT = 'https://api.termsheet.io/';
-
-	exports.API_ROOT = API_ROOT;
-
-	var test = true;
-	var testArray = [];
-
-	var CALL_API = exports.CALL_API = 'Call API';
-
-	function loginAPI(username, password) {
-
-		if (test) {
-			return new Promise(function (resolve, reject) {
-				var job_id = Math.random();
-				window.setTimeout(function () {
-					return resolve({ job_id: job_id });
-				}, 1000);
-				testArray.push({ job_id: job_id, payload: { macron: Math.random() }, type: 'success' });
-			});
-		} else {
-
-			return fetch(API_ROOT + 'login/', { method: 'POST', headers: { 'Authorization': window.macaroons, 'Content-Type': 'application/json' } }).then(function (response) {
-				if (response.status >= 400) {
-					throw new Error(response);
-				}
-				return response.json();
-			}).catch(function (err) {
-				console.log('err1', err);
-				return err;
-			});
-		}
-	}
-
-	function anonymousMacaroon() {
-
-		return fetch(API_ROOT + 'anonymousMacaroon').then(function (response) {
-			if (response.status >= 400) {
-				throw new Error(response);
-			}
-			data = response.json();
-			window.macaroons = data.macaroons;
-			return response.json();
-		}).then(function (json) {
-			console.log(json);
-		}).catch(function (err) {
-			console.log('err1', err);
-			return err;
-		});
-	}
-
-	function pollerApi(globalPollerEvent, callback) {
-		if (test) {
-			console.log(testArray.length);
-			if (testArray.length) {
-				globalPollerEvent.trigger('poll', testArray.pop());
-			} else {
-				globalPollerEvent.trigger('poll', {});
-			}
-			callback();
-		} else {
-			$.ajax({ url: API_ROOT + 'data.json', success: function success(data) {
-					globalPollerEvent.trigger('poll', data);
-				}, dataType: "json", complete: callback });
-		}
-	}
-
-	function callAPi(endpoint) {
-		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
-		var payload = arguments[2];
-		var schema = arguments[3];
-
-		var fullURL = API_ROOT + endpoint;
-
-		var headers = {};
-
-		var APIConfig = {
-			method: method
-		};
-
-		if (data) {
-			headers['Content-Type'] = 'application/json';
-			APIConfig.body = JSON.stringify(data);
-		}
-
-		APIConfig['headers'] = headers;
-
-		return fetch(fullUrl, APIConfig).then(function (response) {
-			if (response.status >= 400) {
-				return Promise.reject(response.json());
-			}
-			return response.json();
-		});
-	}
-
-	exports.default = function (store) {
-		return function (next) {
-			return function (action) {
-				var callAPI = action[CALL_API];
-				if (typeof callAPI === 'undefined') {
-					return next(action);
-				}
-
-				var endpoint = callAPI.endpoint;
-				var method = callAPI.method;
-				var payload = callAPI.payload;
-				var schema = callAPI.schema;
-
-
-				if (typeof endpoint === 'function') {
-					endpoint = endpoint(store.getState());
-				}
-
-				if (typeof endpoint !== 'string') {
-					throw new Error('Specify a string endpoint URL.');
-				}
-
-				if (!Array.isArray(types) || types.length !== 5) {
-					throw new Error('Expected an array of five action types.');
-				}
-
-				if (!types.every(function (type) {
-					return typeof type === 'string';
-				})) {
-					throw new Error('Expected action types to be strings.');
-				}
-
-				function actionWith(data) {
-					var finalAction = Object.assign({}, action, data);
-					delete finalAction[CALL_API];
-					return finalAction;
-				}
-
-				var _types = types;
-
-				var _types2 = _slicedToArray(_types, 5);
-
-				var requestType = _types2[0];
-				var successRequstedType = _types2[1];
-				var failureRequstedType = _types2[2];
-				var successType = _types2[3];
-				var failureType = _types2[4];
-
-
-				function actionWithJob(jobId, data) {
-					store.dispatch((0, _action.addJobs)(jobId, successType, failureType));
-
-					var finalAction = Object.assign({}, action, data);
-					delete finalAction[CALL_API];
-					return finalAction;
-				}
-
-				next(actionWith({ type: requestType }));
-
-				return callApi(endpoint, method, payload, schema).then(function (json) {
-					return next(actionWithJob(json.job_id, {
-						type: successRequstedType
-					}));
-				}, function (error) {
-					return next(actionWith({
-						type: failureRequstedType,
-						payload: error || { message: 'Something bad happened' }
-					}));
-				});
-			};
-		};
-	};
-
-/***/ },
-/* 302 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// the whatwg-fetch polyfill installs the fetch() function
-	// on the global object (window or self)
-	//
-	// Return that as the export for use in Webpack, Browserify etc.
-	__webpack_require__(303);
-	module.exports = self.fetch.bind(self);
-
-
-/***/ },
-/* 303 */
-/***/ function(module, exports) {
-
-	(function(self) {
-	  'use strict';
-
-	  if (self.fetch) {
-	    return
-	  }
-
-	  var support = {
-	    searchParams: 'URLSearchParams' in self,
-	    iterable: 'Symbol' in self && 'iterator' in Symbol,
-	    blob: 'FileReader' in self && 'Blob' in self && (function() {
-	      try {
-	        new Blob()
-	        return true
-	      } catch(e) {
-	        return false
-	      }
-	    })(),
-	    formData: 'FormData' in self,
-	    arrayBuffer: 'ArrayBuffer' in self
-	  }
-
-	  function normalizeName(name) {
-	    if (typeof name !== 'string') {
-	      name = String(name)
-	    }
-	    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
-	      throw new TypeError('Invalid character in header field name')
-	    }
-	    return name.toLowerCase()
-	  }
-
-	  function normalizeValue(value) {
-	    if (typeof value !== 'string') {
-	      value = String(value)
-	    }
-	    return value
-	  }
-
-	  // Build a destructive iterator for the value list
-	  function iteratorFor(items) {
-	    var iterator = {
-	      next: function() {
-	        var value = items.shift()
-	        return {done: value === undefined, value: value}
-	      }
-	    }
-
-	    if (support.iterable) {
-	      iterator[Symbol.iterator] = function() {
-	        return iterator
-	      }
-	    }
-
-	    return iterator
-	  }
-
-	  function Headers(headers) {
-	    this.map = {}
-
-	    if (headers instanceof Headers) {
-	      headers.forEach(function(value, name) {
-	        this.append(name, value)
-	      }, this)
-
-	    } else if (headers) {
-	      Object.getOwnPropertyNames(headers).forEach(function(name) {
-	        this.append(name, headers[name])
-	      }, this)
-	    }
-	  }
-
-	  Headers.prototype.append = function(name, value) {
-	    name = normalizeName(name)
-	    value = normalizeValue(value)
-	    var list = this.map[name]
-	    if (!list) {
-	      list = []
-	      this.map[name] = list
-	    }
-	    list.push(value)
-	  }
-
-	  Headers.prototype['delete'] = function(name) {
-	    delete this.map[normalizeName(name)]
-	  }
-
-	  Headers.prototype.get = function(name) {
-	    var values = this.map[normalizeName(name)]
-	    return values ? values[0] : null
-	  }
-
-	  Headers.prototype.getAll = function(name) {
-	    return this.map[normalizeName(name)] || []
-	  }
-
-	  Headers.prototype.has = function(name) {
-	    return this.map.hasOwnProperty(normalizeName(name))
-	  }
-
-	  Headers.prototype.set = function(name, value) {
-	    this.map[normalizeName(name)] = [normalizeValue(value)]
-	  }
-
-	  Headers.prototype.forEach = function(callback, thisArg) {
-	    Object.getOwnPropertyNames(this.map).forEach(function(name) {
-	      this.map[name].forEach(function(value) {
-	        callback.call(thisArg, value, name, this)
-	      }, this)
-	    }, this)
-	  }
-
-	  Headers.prototype.keys = function() {
-	    var items = []
-	    this.forEach(function(value, name) { items.push(name) })
-	    return iteratorFor(items)
-	  }
-
-	  Headers.prototype.values = function() {
-	    var items = []
-	    this.forEach(function(value) { items.push(value) })
-	    return iteratorFor(items)
-	  }
-
-	  Headers.prototype.entries = function() {
-	    var items = []
-	    this.forEach(function(value, name) { items.push([name, value]) })
-	    return iteratorFor(items)
-	  }
-
-	  if (support.iterable) {
-	    Headers.prototype[Symbol.iterator] = Headers.prototype.entries
-	  }
-
-	  function consumed(body) {
-	    if (body.bodyUsed) {
-	      return Promise.reject(new TypeError('Already read'))
-	    }
-	    body.bodyUsed = true
-	  }
-
-	  function fileReaderReady(reader) {
-	    return new Promise(function(resolve, reject) {
-	      reader.onload = function() {
-	        resolve(reader.result)
-	      }
-	      reader.onerror = function() {
-	        reject(reader.error)
-	      }
-	    })
-	  }
-
-	  function readBlobAsArrayBuffer(blob) {
-	    var reader = new FileReader()
-	    reader.readAsArrayBuffer(blob)
-	    return fileReaderReady(reader)
-	  }
-
-	  function readBlobAsText(blob) {
-	    var reader = new FileReader()
-	    reader.readAsText(blob)
-	    return fileReaderReady(reader)
-	  }
-
-	  function Body() {
-	    this.bodyUsed = false
-
-	    this._initBody = function(body) {
-	      this._bodyInit = body
-	      if (typeof body === 'string') {
-	        this._bodyText = body
-	      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
-	        this._bodyBlob = body
-	      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
-	        this._bodyFormData = body
-	      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-	        this._bodyText = body.toString()
-	      } else if (!body) {
-	        this._bodyText = ''
-	      } else if (support.arrayBuffer && ArrayBuffer.prototype.isPrototypeOf(body)) {
-	        // Only support ArrayBuffers for POST method.
-	        // Receiving ArrayBuffers happens via Blobs, instead.
-	      } else {
-	        throw new Error('unsupported BodyInit type')
-	      }
-
-	      if (!this.headers.get('content-type')) {
-	        if (typeof body === 'string') {
-	          this.headers.set('content-type', 'text/plain;charset=UTF-8')
-	        } else if (this._bodyBlob && this._bodyBlob.type) {
-	          this.headers.set('content-type', this._bodyBlob.type)
-	        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
-	          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
-	        }
-	      }
-	    }
-
-	    if (support.blob) {
-	      this.blob = function() {
-	        var rejected = consumed(this)
-	        if (rejected) {
-	          return rejected
-	        }
-
-	        if (this._bodyBlob) {
-	          return Promise.resolve(this._bodyBlob)
-	        } else if (this._bodyFormData) {
-	          throw new Error('could not read FormData body as blob')
-	        } else {
-	          return Promise.resolve(new Blob([this._bodyText]))
-	        }
-	      }
-
-	      this.arrayBuffer = function() {
-	        return this.blob().then(readBlobAsArrayBuffer)
-	      }
-
-	      this.text = function() {
-	        var rejected = consumed(this)
-	        if (rejected) {
-	          return rejected
-	        }
-
-	        if (this._bodyBlob) {
-	          return readBlobAsText(this._bodyBlob)
-	        } else if (this._bodyFormData) {
-	          throw new Error('could not read FormData body as text')
-	        } else {
-	          return Promise.resolve(this._bodyText)
-	        }
-	      }
-	    } else {
-	      this.text = function() {
-	        var rejected = consumed(this)
-	        return rejected ? rejected : Promise.resolve(this._bodyText)
-	      }
-	    }
-
-	    if (support.formData) {
-	      this.formData = function() {
-	        return this.text().then(decode)
-	      }
-	    }
-
-	    this.json = function() {
-	      return this.text().then(JSON.parse)
-	    }
-
-	    return this
-	  }
-
-	  // HTTP methods whose capitalization should be normalized
-	  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']
-
-	  function normalizeMethod(method) {
-	    var upcased = method.toUpperCase()
-	    return (methods.indexOf(upcased) > -1) ? upcased : method
-	  }
-
-	  function Request(input, options) {
-	    options = options || {}
-	    var body = options.body
-	    if (Request.prototype.isPrototypeOf(input)) {
-	      if (input.bodyUsed) {
-	        throw new TypeError('Already read')
-	      }
-	      this.url = input.url
-	      this.credentials = input.credentials
-	      if (!options.headers) {
-	        this.headers = new Headers(input.headers)
-	      }
-	      this.method = input.method
-	      this.mode = input.mode
-	      if (!body) {
-	        body = input._bodyInit
-	        input.bodyUsed = true
-	      }
-	    } else {
-	      this.url = input
-	    }
-
-	    this.credentials = options.credentials || this.credentials || 'omit'
-	    if (options.headers || !this.headers) {
-	      this.headers = new Headers(options.headers)
-	    }
-	    this.method = normalizeMethod(options.method || this.method || 'GET')
-	    this.mode = options.mode || this.mode || null
-	    this.referrer = null
-
-	    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
-	      throw new TypeError('Body not allowed for GET or HEAD requests')
-	    }
-	    this._initBody(body)
-	  }
-
-	  Request.prototype.clone = function() {
-	    return new Request(this)
-	  }
-
-	  function decode(body) {
-	    var form = new FormData()
-	    body.trim().split('&').forEach(function(bytes) {
-	      if (bytes) {
-	        var split = bytes.split('=')
-	        var name = split.shift().replace(/\+/g, ' ')
-	        var value = split.join('=').replace(/\+/g, ' ')
-	        form.append(decodeURIComponent(name), decodeURIComponent(value))
-	      }
-	    })
-	    return form
-	  }
-
-	  function headers(xhr) {
-	    var head = new Headers()
-	    var pairs = (xhr.getAllResponseHeaders() || '').trim().split('\n')
-	    pairs.forEach(function(header) {
-	      var split = header.trim().split(':')
-	      var key = split.shift().trim()
-	      var value = split.join(':').trim()
-	      head.append(key, value)
-	    })
-	    return head
-	  }
-
-	  Body.call(Request.prototype)
-
-	  function Response(bodyInit, options) {
-	    if (!options) {
-	      options = {}
-	    }
-
-	    this.type = 'default'
-	    this.status = options.status
-	    this.ok = this.status >= 200 && this.status < 300
-	    this.statusText = options.statusText
-	    this.headers = options.headers instanceof Headers ? options.headers : new Headers(options.headers)
-	    this.url = options.url || ''
-	    this._initBody(bodyInit)
-	  }
-
-	  Body.call(Response.prototype)
-
-	  Response.prototype.clone = function() {
-	    return new Response(this._bodyInit, {
-	      status: this.status,
-	      statusText: this.statusText,
-	      headers: new Headers(this.headers),
-	      url: this.url
-	    })
-	  }
-
-	  Response.error = function() {
-	    var response = new Response(null, {status: 0, statusText: ''})
-	    response.type = 'error'
-	    return response
-	  }
-
-	  var redirectStatuses = [301, 302, 303, 307, 308]
-
-	  Response.redirect = function(url, status) {
-	    if (redirectStatuses.indexOf(status) === -1) {
-	      throw new RangeError('Invalid status code')
-	    }
-
-	    return new Response(null, {status: status, headers: {location: url}})
-	  }
-
-	  self.Headers = Headers
-	  self.Request = Request
-	  self.Response = Response
-
-	  self.fetch = function(input, init) {
-	    return new Promise(function(resolve, reject) {
-	      var request
-	      if (Request.prototype.isPrototypeOf(input) && !init) {
-	        request = input
-	      } else {
-	        request = new Request(input, init)
-	      }
-
-	      var xhr = new XMLHttpRequest()
-
-	      function responseURL() {
-	        if ('responseURL' in xhr) {
-	          return xhr.responseURL
-	        }
-
-	        // Avoid security warnings on getResponseHeader when not allowed by CORS
-	        if (/^X-Request-URL:/m.test(xhr.getAllResponseHeaders())) {
-	          return xhr.getResponseHeader('X-Request-URL')
-	        }
-
-	        return
-	      }
-
-	      xhr.onload = function() {
-	        var options = {
-	          status: xhr.status,
-	          statusText: xhr.statusText,
-	          headers: headers(xhr),
-	          url: responseURL()
-	        }
-	        var body = 'response' in xhr ? xhr.response : xhr.responseText
-	        resolve(new Response(body, options))
-	      }
-
-	      xhr.onerror = function() {
-	        reject(new TypeError('Network request failed'))
-	      }
-
-	      xhr.ontimeout = function() {
-	        reject(new TypeError('Network request failed'))
-	      }
-
-	      xhr.open(request.method, request.url, true)
-
-	      if (request.credentials === 'include') {
-	        xhr.withCredentials = true
-	      }
-
-	      if ('responseType' in xhr && support.blob) {
-	        xhr.responseType = 'blob'
-	      }
-
-	      request.headers.forEach(function(value, name) {
-	        xhr.setRequestHeader(name, value)
-	      })
-
-	      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
-	    })
-	  }
-	  self.fetch.polyfill = true
-	})(typeof self !== 'undefined' ? self : this);
-
-
-/***/ },
-/* 304 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	exports.__esModule = true;
-	function createThunkMiddleware(extraArgument) {
-	  return function (_ref) {
-	    var dispatch = _ref.dispatch;
-	    var getState = _ref.getState;
-	    return function (next) {
-	      return function (action) {
-	        if (typeof action === 'function') {
-	          return action(dispatch, getState, extraArgument);
-	        }
-
-	        return next(action);
-	      };
-	    };
-	  };
-	}
-
-	var thunk = createThunkMiddleware();
-	thunk.withExtraArgument = createThunkMiddleware;
-
-	exports['default'] = thunk;
-
-/***/ },
-/* 305 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-	exports.pollerEvent = undefined;
-
-	var _api = __webpack_require__(301);
-
-	var _action = __webpack_require__(300);
-
-	var currentPollerTimeout, globalPollerEvent, globalJobsEvent;
-	var testArray = [];
-
-	function PollerEvent() {
-		return function (riot, store) {
-			return function () {
-
-				riot.observable(this);
-				this.on('poll', function (data) {
-					console.log('poll', data);
-					globalJobsEvent.trigger('job', data.job_id, data.payload, data.type);
-				});
-
-				this.on('regester_poller_event', function (pe) {
-					return globalPollerEvent = pe;
-				});
-				this.on('regester_jobs_event', function (je) {
-					return globalJobsEvent = je;
-				});
-
-				this.on('start_poller', function (timeout) {
-					startPoller(timeout);
-				});
-
-				this.on('stop_poller', function () {
-					stopPoller();
-				});
-			};
-		};
-	}
-
-	var pollerEvent = PollerEvent();
-	exports.pollerEvent = pollerEvent;
-
-
-	function startPoller() {
-		var timeout = arguments.length <= 0 || arguments[0] === undefined ? 5000 : arguments[0];
-
-
-		(function poll() {
-			console.log('startPoller');
-
-			currentPollerTimeout = setTimeout(function () {
-				(0, _api.pollerApi)(globalPollerEvent, poll);
-			}, timeout);
-		})();
-	}
-
-	function stopPoller() {
-		if (typeof currentPollerTimeout === "function") currentPollerTimeout();
-	}
-
-/***/ },
-/* 306 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-		value: true
-	});
-
-	var jobs = {};
-
-	function JobsEvent() {
-		return function (riot, store) {
-			return function () {
-
-				riot.observable(this);
-
-				this.on('regester_job', function (job_id, success, failed) {
-					return jobs[job_id] = { success: success, failed: failed };
-				});
-
-				this.on('job', function (job_id, payload, type) {
-
-					if (jobs[job_id]) {
-
-						var action = { payload: payload };
-
-						if (type === 'success') {
-							action.type = jobs[job_id].success;
-						} else {
-							action.type = jobs[job_id].failed;
-						}
-
-						store.dispatch(action);
-					}
-				});
-			};
-		};
-	}
-
-	var jobsEvent = JobsEvent();
-	exports.jobsEvent = jobsEvent;
-
-/***/ },
-/* 307 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
-
-	exports.__esModule = true;
-	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
-
-	var _createStore = __webpack_require__(308);
-
-	var _createStore2 = _interopRequireDefault(_createStore);
-
-	var _combineReducers = __webpack_require__(315);
-
-	var _combineReducers2 = _interopRequireDefault(_combineReducers);
-
-	var _bindActionCreators = __webpack_require__(317);
-
-	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
-
-	var _applyMiddleware = __webpack_require__(318);
-
-	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
-
-	var _compose = __webpack_require__(319);
-
-	var _compose2 = _interopRequireDefault(_compose);
-
-	var _warning = __webpack_require__(316);
-
-	var _warning2 = _interopRequireDefault(_warning);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-	/*
-	* This is a dummy function to check if the function name has been altered by minification.
-	* If the function has been minified and NODE_ENV !== 'production', warn the user.
-	*/
-	function isCrushed() {}
-
-	if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
-	  (0, _warning2["default"])('You are currently using minified code outside of NODE_ENV === \'production\'. ' + 'This means that you are running a slower development build of Redux. ' + 'You can use loose-envify (https://github.com/zertosh/loose-envify) for browserify ' + 'or DefinePlugin for webpack (http://stackoverflow.com/questions/30030031) ' + 'to ensure you have the correct code for your production build.');
-	}
-
-	exports.createStore = _createStore2["default"];
-	exports.combineReducers = _combineReducers2["default"];
-	exports.bindActionCreators = _bindActionCreators2["default"];
-	exports.applyMiddleware = _applyMiddleware2["default"];
-	exports.compose = _compose2["default"];
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(295)))
-
-/***/ },
-/* 308 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.__esModule = true;
-	exports.ActionTypes = undefined;
-	exports["default"] = createStore;
-
-	var _isPlainObject = __webpack_require__(309);
-
-	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
-
-	var _symbolObservable = __webpack_require__(313);
-
-	var _symbolObservable2 = _interopRequireDefault(_symbolObservable);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-	/**
-	 * These are private action types reserved by Redux.
-	 * For any unknown actions, you must return the current state.
-	 * If the current state is undefined, you must return the initial state.
-	 * Do not reference these action types directly in your code.
-	 */
-	var ActionTypes = exports.ActionTypes = {
-	  INIT: '@@redux/INIT'
-	};
-
-	/**
-	 * Creates a Redux store that holds the state tree.
-	 * The only way to change the data in the store is to call `dispatch()` on it.
-	 *
-	 * There should only be a single store in your app. To specify how different
-	 * parts of the state tree respond to actions, you may combine several reducers
-	 * into a single reducer function by using `combineReducers`.
-	 *
-	 * @param {Function} reducer A function that returns the next state tree, given
-	 * the current state tree and the action to handle.
-	 *
-	 * @param {any} [initialState] The initial state. You may optionally specify it
-	 * to hydrate the state from the server in universal apps, or to restore a
-	 * previously serialized user session.
-	 * If you use `combineReducers` to produce the root reducer function, this must be
-	 * an object with the same shape as `combineReducers` keys.
-	 *
-	 * @param {Function} enhancer The store enhancer. You may optionally specify it
-	 * to enhance the store with third-party capabilities such as middleware,
-	 * time travel, persistence, etc. The only store enhancer that ships with Redux
-	 * is `applyMiddleware()`.
-	 *
-	 * @returns {Store} A Redux store that lets you read the state, dispatch actions
-	 * and subscribe to changes.
-	 */
-	function createStore(reducer, initialState, enhancer) {
-	  var _ref2;
-
-	  if (typeof initialState === 'function' && typeof enhancer === 'undefined') {
-	    enhancer = initialState;
-	    initialState = undefined;
-	  }
-
-	  if (typeof enhancer !== 'undefined') {
-	    if (typeof enhancer !== 'function') {
-	      throw new Error('Expected the enhancer to be a function.');
-	    }
-
-	    return enhancer(createStore)(reducer, initialState);
-	  }
-
-	  if (typeof reducer !== 'function') {
-	    throw new Error('Expected the reducer to be a function.');
-	  }
-
-	  var currentReducer = reducer;
-	  var currentState = initialState;
-	  var currentListeners = [];
-	  var nextListeners = currentListeners;
-	  var isDispatching = false;
-
-	  function ensureCanMutateNextListeners() {
-	    if (nextListeners === currentListeners) {
-	      nextListeners = currentListeners.slice();
-	    }
-	  }
-
-	  /**
-	   * Reads the state tree managed by the store.
-	   *
-	   * @returns {any} The current state tree of your application.
-	   */
-	  function getState() {
-	    return currentState;
-	  }
-
-	  /**
-	   * Adds a change listener. It will be called any time an action is dispatched,
-	   * and some part of the state tree may potentially have changed. You may then
-	   * call `getState()` to read the current state tree inside the callback.
-	   *
-	   * You may call `dispatch()` from a change listener, with the following
-	   * caveats:
-	   *
-	   * 1. The subscriptions are snapshotted just before every `dispatch()` call.
-	   * If you subscribe or unsubscribe while the listeners are being invoked, this
-	   * will not have any effect on the `dispatch()` that is currently in progress.
-	   * However, the next `dispatch()` call, whether nested or not, will use a more
-	   * recent snapshot of the subscription list.
-	   *
-	   * 2. The listener should not expect to see all state changes, as the state
-	   * might have been updated multiple times during a nested `dispatch()` before
-	   * the listener is called. It is, however, guaranteed that all subscribers
-	   * registered before the `dispatch()` started will be called with the latest
-	   * state by the time it exits.
-	   *
-	   * @param {Function} listener A callback to be invoked on every dispatch.
-	   * @returns {Function} A function to remove this change listener.
-	   */
-	  function subscribe(listener) {
-	    if (typeof listener !== 'function') {
-	      throw new Error('Expected listener to be a function.');
-	    }
-
-	    var isSubscribed = true;
-
-	    ensureCanMutateNextListeners();
-	    nextListeners.push(listener);
-
-	    return function unsubscribe() {
-	      if (!isSubscribed) {
-	        return;
-	      }
-
-	      isSubscribed = false;
-
-	      ensureCanMutateNextListeners();
-	      var index = nextListeners.indexOf(listener);
-	      nextListeners.splice(index, 1);
-	    };
-	  }
-
-	  /**
-	   * Dispatches an action. It is the only way to trigger a state change.
-	   *
-	   * The `reducer` function, used to create the store, will be called with the
-	   * current state tree and the given `action`. Its return value will
-	   * be considered the **next** state of the tree, and the change listeners
-	   * will be notified.
-	   *
-	   * The base implementation only supports plain object actions. If you want to
-	   * dispatch a Promise, an Observable, a thunk, or something else, you need to
-	   * wrap your store creating function into the corresponding middleware. For
-	   * example, see the documentation for the `redux-thunk` package. Even the
-	   * middleware will eventually dispatch plain object actions using this method.
-	   *
-	   * @param {Object} action A plain object representing “what changed”. It is
-	   * a good idea to keep actions serializable so you can record and replay user
-	   * sessions, or use the time travelling `redux-devtools`. An action must have
-	   * a `type` property which may not be `undefined`. It is a good idea to use
-	   * string constants for action types.
-	   *
-	   * @returns {Object} For convenience, the same action object you dispatched.
-	   *
-	   * Note that, if you use a custom middleware, it may wrap `dispatch()` to
-	   * return something else (for example, a Promise you can await).
-	   */
-	  function dispatch(action) {
-	    if (!(0, _isPlainObject2["default"])(action)) {
-	      throw new Error('Actions must be plain objects. ' + 'Use custom middleware for async actions.');
-	    }
-
-	    if (typeof action.type === 'undefined') {
-	      throw new Error('Actions may not have an undefined "type" property. ' + 'Have you misspelled a constant?');
-	    }
-
-	    if (isDispatching) {
-	      throw new Error('Reducers may not dispatch actions.');
-	    }
-
-	    try {
-	      isDispatching = true;
-	      currentState = currentReducer(currentState, action);
-	    } finally {
-	      isDispatching = false;
-	    }
-
-	    var listeners = currentListeners = nextListeners;
-	    for (var i = 0; i < listeners.length; i++) {
-	      listeners[i]();
-	    }
-
-	    return action;
-	  }
-
-	  /**
-	   * Replaces the reducer currently used by the store to calculate the state.
-	   *
-	   * You might need this if your app implements code splitting and you want to
-	   * load some of the reducers dynamically. You might also need this if you
-	   * implement a hot reloading mechanism for Redux.
-	   *
-	   * @param {Function} nextReducer The reducer for the store to use instead.
-	   * @returns {void}
-	   */
-	  function replaceReducer(nextReducer) {
-	    if (typeof nextReducer !== 'function') {
-	      throw new Error('Expected the nextReducer to be a function.');
-	    }
-
-	    currentReducer = nextReducer;
-	    dispatch({ type: ActionTypes.INIT });
-	  }
-
-	  /**
-	   * Interoperability point for observable/reactive libraries.
-	   * @returns {observable} A minimal observable of state changes.
-	   * For more information, see the observable proposal:
-	   * https://github.com/zenparsing/es-observable
-	   */
-	  function observable() {
-	    var _ref;
-
-	    var outerSubscribe = subscribe;
-	    return _ref = {
-	      /**
-	       * The minimal observable subscription method.
-	       * @param {Object} observer Any object that can be used as an observer.
-	       * The observer object should have a `next` method.
-	       * @returns {subscription} An object with an `unsubscribe` method that can
-	       * be used to unsubscribe the observable from the store, and prevent further
-	       * emission of values from the observable.
-	       */
-
-	      subscribe: function subscribe(observer) {
-	        if (typeof observer !== 'object') {
-	          throw new TypeError('Expected the observer to be an object.');
-	        }
-
-	        function observeState() {
-	          if (observer.next) {
-	            observer.next(getState());
-	          }
-	        }
-
-	        observeState();
-	        var unsubscribe = outerSubscribe(observeState);
-	        return { unsubscribe: unsubscribe };
-	      }
-	    }, _ref[_symbolObservable2["default"]] = function () {
-	      return this;
-	    }, _ref;
-	  }
-
-	  // When a store is created, an "INIT" action is dispatched so that every
-	  // reducer returns their initial state. This effectively populates
-	  // the initial state tree.
-	  dispatch({ type: ActionTypes.INIT });
-
-	  return _ref2 = {
-	    dispatch: dispatch,
-	    subscribe: subscribe,
-	    getState: getState,
-	    replaceReducer: replaceReducer
-	  }, _ref2[_symbolObservable2["default"]] = observable, _ref2;
-	}
-
-/***/ },
-/* 309 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var getPrototype = __webpack_require__(310),
-	    isHostObject = __webpack_require__(311),
-	    isObjectLike = __webpack_require__(312);
-
-	/** `Object#toString` result references. */
-	var objectTag = '[object Object]';
-
-	/** Used for built-in method references. */
-	var objectProto = Object.prototype;
-
-	/** Used to resolve the decompiled source of functions. */
-	var funcToString = Function.prototype.toString;
-
-	/** Used to check objects for own properties. */
-	var hasOwnProperty = objectProto.hasOwnProperty;
-
-	/** Used to infer the `Object` constructor. */
-	var objectCtorString = funcToString.call(Object);
-
-	/**
-	 * Used to resolve the
-	 * [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
-	 * of values.
-	 */
-	var objectToString = objectProto.toString;
-
-	/**
-	 * Checks if `value` is a plain object, that is, an object created by the
-	 * `Object` constructor or one with a `[[Prototype]]` of `null`.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 0.8.0
-	 * @category Lang
-	 * @param {*} value The value to check.
-	 * @returns {boolean} Returns `true` if `value` is a plain object,
-	 *  else `false`.
-	 * @example
-	 *
-	 * function Foo() {
-	 *   this.a = 1;
-	 * }
-	 *
-	 * _.isPlainObject(new Foo);
-	 * // => false
-	 *
-	 * _.isPlainObject([1, 2, 3]);
-	 * // => false
-	 *
-	 * _.isPlainObject({ 'x': 0, 'y': 0 });
-	 * // => true
-	 *
-	 * _.isPlainObject(Object.create(null));
-	 * // => true
-	 */
-	function isPlainObject(value) {
-	  if (!isObjectLike(value) ||
-	      objectToString.call(value) != objectTag || isHostObject(value)) {
-	    return false;
-	  }
-	  var proto = getPrototype(value);
-	  if (proto === null) {
-	    return true;
-	  }
-	  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
-	  return (typeof Ctor == 'function' &&
-	    Ctor instanceof Ctor && funcToString.call(Ctor) == objectCtorString);
-	}
-
-	module.exports = isPlainObject;
-
-
-/***/ },
-/* 310 */
-/***/ function(module, exports) {
-
-	/* Built-in method references for those with the same name as other `lodash` methods. */
-	var nativeGetPrototype = Object.getPrototypeOf;
-
-	/**
-	 * Gets the `[[Prototype]]` of `value`.
-	 *
-	 * @private
-	 * @param {*} value The value to query.
-	 * @returns {null|Object} Returns the `[[Prototype]]`.
-	 */
-	function getPrototype(value) {
-	  return nativeGetPrototype(Object(value));
-	}
-
-	module.exports = getPrototype;
-
-
-/***/ },
-/* 311 */
-/***/ function(module, exports) {
-
-	/**
-	 * Checks if `value` is a host object in IE < 9.
-	 *
-	 * @private
-	 * @param {*} value The value to check.
-	 * @returns {boolean} Returns `true` if `value` is a host object, else `false`.
-	 */
-	function isHostObject(value) {
-	  // Many host objects are `Object` objects that can coerce to strings
-	  // despite having improperly defined `toString` methods.
-	  var result = false;
-	  if (value != null && typeof value.toString != 'function') {
-	    try {
-	      result = !!(value + '');
-	    } catch (e) {}
-	  }
-	  return result;
-	}
-
-	module.exports = isHostObject;
-
-
-/***/ },
-/* 312 */
-/***/ function(module, exports) {
-
-	/**
-	 * Checks if `value` is object-like. A value is object-like if it's not `null`
-	 * and has a `typeof` result of "object".
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 4.0.0
-	 * @category Lang
-	 * @param {*} value The value to check.
-	 * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
-	 * @example
-	 *
-	 * _.isObjectLike({});
-	 * // => true
-	 *
-	 * _.isObjectLike([1, 2, 3]);
-	 * // => true
-	 *
-	 * _.isObjectLike(_.noop);
-	 * // => false
-	 *
-	 * _.isObjectLike(null);
-	 * // => false
-	 */
-	function isObjectLike(value) {
-	  return !!value && typeof value == 'object';
-	}
-
-	module.exports = isObjectLike;
-
-
-/***/ },
-/* 313 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {/* global window */
-	'use strict';
-
-	module.exports = __webpack_require__(314)(global || window || this);
-
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 314 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	module.exports = function symbolObservablePonyfill(root) {
-		var result;
-		var Symbol = root.Symbol;
-
-		if (typeof Symbol === 'function') {
-			if (Symbol.observable) {
-				result = Symbol.observable;
-			} else {
-				result = Symbol('observable');
-				Symbol.observable = result;
-			}
-		} else {
-			result = '@@observable';
-		}
-
-		return result;
-	};
-
-
-/***/ },
-/* 315 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
-
-	exports.__esModule = true;
-	exports["default"] = combineReducers;
-
-	var _createStore = __webpack_require__(308);
-
-	var _isPlainObject = __webpack_require__(309);
-
-	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
-
-	var _warning = __webpack_require__(316);
-
-	var _warning2 = _interopRequireDefault(_warning);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-	function getUndefinedStateErrorMessage(key, action) {
-	  var actionType = action && action.type;
-	  var actionName = actionType && '"' + actionType.toString() + '"' || 'an action';
-
-	  return 'Given action ' + actionName + ', reducer "' + key + '" returned undefined. ' + 'To ignore an action, you must explicitly return the previous state.';
-	}
-
-	function getUnexpectedStateShapeWarningMessage(inputState, reducers, action) {
-	  var reducerKeys = Object.keys(reducers);
-	  var argumentName = action && action.type === _createStore.ActionTypes.INIT ? 'initialState argument passed to createStore' : 'previous state received by the reducer';
-
-	  if (reducerKeys.length === 0) {
-	    return 'Store does not have a valid reducer. Make sure the argument passed ' + 'to combineReducers is an object whose values are reducers.';
-	  }
-
-	  if (!(0, _isPlainObject2["default"])(inputState)) {
-	    return 'The ' + argumentName + ' has unexpected type of "' + {}.toString.call(inputState).match(/\s([a-z|A-Z]+)/)[1] + '". Expected argument to be an object with the following ' + ('keys: "' + reducerKeys.join('", "') + '"');
-	  }
-
-	  var unexpectedKeys = Object.keys(inputState).filter(function (key) {
-	    return !reducers.hasOwnProperty(key);
-	  });
-
-	  if (unexpectedKeys.length > 0) {
-	    return 'Unexpected ' + (unexpectedKeys.length > 1 ? 'keys' : 'key') + ' ' + ('"' + unexpectedKeys.join('", "') + '" found in ' + argumentName + '. ') + 'Expected to find one of the known reducer keys instead: ' + ('"' + reducerKeys.join('", "') + '". Unexpected keys will be ignored.');
-	  }
-	}
-
-	function assertReducerSanity(reducers) {
-	  Object.keys(reducers).forEach(function (key) {
-	    var reducer = reducers[key];
-	    var initialState = reducer(undefined, { type: _createStore.ActionTypes.INIT });
-
-	    if (typeof initialState === 'undefined') {
-	      throw new Error('Reducer "' + key + '" returned undefined during initialization. ' + 'If the state passed to the reducer is undefined, you must ' + 'explicitly return the initial state. The initial state may ' + 'not be undefined.');
-	    }
-
-	    var type = '@@redux/PROBE_UNKNOWN_ACTION_' + Math.random().toString(36).substring(7).split('').join('.');
-	    if (typeof reducer(undefined, { type: type }) === 'undefined') {
-	      throw new Error('Reducer "' + key + '" returned undefined when probed with a random type. ' + ('Don\'t try to handle ' + _createStore.ActionTypes.INIT + ' or other actions in "redux/*" ') + 'namespace. They are considered private. Instead, you must return the ' + 'current state for any unknown actions, unless it is undefined, ' + 'in which case you must return the initial state, regardless of the ' + 'action type. The initial state may not be undefined.');
-	    }
-	  });
-	}
-
-	/**
-	 * Turns an object whose values are different reducer functions, into a single
-	 * reducer function. It will call every child reducer, and gather their results
-	 * into a single state object, whose keys correspond to the keys of the passed
-	 * reducer functions.
-	 *
-	 * @param {Object} reducers An object whose values correspond to different
-	 * reducer functions that need to be combined into one. One handy way to obtain
-	 * it is to use ES6 `import * as reducers` syntax. The reducers may never return
-	 * undefined for any action. Instead, they should return their initial state
-	 * if the state passed to them was undefined, and the current state for any
-	 * unrecognized action.
-	 *
-	 * @returns {Function} A reducer function that invokes every reducer inside the
-	 * passed object, and builds a state object with the same shape.
-	 */
-	function combineReducers(reducers) {
-	  var reducerKeys = Object.keys(reducers);
-	  var finalReducers = {};
-	  for (var i = 0; i < reducerKeys.length; i++) {
-	    var key = reducerKeys[i];
-	    if (typeof reducers[key] === 'function') {
-	      finalReducers[key] = reducers[key];
-	    }
-	  }
-	  var finalReducerKeys = Object.keys(finalReducers);
-
-	  var sanityError;
-	  try {
-	    assertReducerSanity(finalReducers);
-	  } catch (e) {
-	    sanityError = e;
-	  }
-
-	  return function combination() {
-	    var state = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	    var action = arguments[1];
-
-	    if (sanityError) {
-	      throw sanityError;
-	    }
-
-	    if (process.env.NODE_ENV !== 'production') {
-	      var warningMessage = getUnexpectedStateShapeWarningMessage(state, finalReducers, action);
-	      if (warningMessage) {
-	        (0, _warning2["default"])(warningMessage);
-	      }
-	    }
-
-	    var hasChanged = false;
-	    var nextState = {};
-	    for (var i = 0; i < finalReducerKeys.length; i++) {
-	      var key = finalReducerKeys[i];
-	      var reducer = finalReducers[key];
-	      var previousStateForKey = state[key];
-	      var nextStateForKey = reducer(previousStateForKey, action);
-	      if (typeof nextStateForKey === 'undefined') {
-	        var errorMessage = getUndefinedStateErrorMessage(key, action);
-	        throw new Error(errorMessage);
-	      }
-	      nextState[key] = nextStateForKey;
-	      hasChanged = hasChanged || nextStateForKey !== previousStateForKey;
-	    }
-	    return hasChanged ? nextState : state;
-	  };
-	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(295)))
-
-/***/ },
-/* 316 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	exports.__esModule = true;
-	exports["default"] = warning;
-	/**
-	 * Prints a warning in the console if it exists.
-	 *
-	 * @param {String} message The warning message.
-	 * @returns {void}
-	 */
-	function warning(message) {
-	  /* eslint-disable no-console */
-	  if (typeof console !== 'undefined' && typeof console.error === 'function') {
-	    console.error(message);
-	  }
-	  /* eslint-enable no-console */
-	  try {
-	    // This error was thrown as a convenience so that if you enable
-	    // "break on all exceptions" in your console,
-	    // it would pause the execution at this line.
-	    throw new Error(message);
-	    /* eslint-disable no-empty */
-	  } catch (e) {}
-	  /* eslint-enable no-empty */
-	}
-
-/***/ },
-/* 317 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	exports.__esModule = true;
-	exports["default"] = bindActionCreators;
-	function bindActionCreator(actionCreator, dispatch) {
-	  return function () {
-	    return dispatch(actionCreator.apply(undefined, arguments));
-	  };
-	}
-
-	/**
-	 * Turns an object whose values are action creators, into an object with the
-	 * same keys, but with every function wrapped into a `dispatch` call so they
-	 * may be invoked directly. This is just a convenience method, as you can call
-	 * `store.dispatch(MyActionCreators.doSomething())` yourself just fine.
-	 *
-	 * For convenience, you can also pass a single function as the first argument,
-	 * and get a function in return.
-	 *
-	 * @param {Function|Object} actionCreators An object whose values are action
-	 * creator functions. One handy way to obtain it is to use ES6 `import * as`
-	 * syntax. You may also pass a single function.
-	 *
-	 * @param {Function} dispatch The `dispatch` function available on your Redux
-	 * store.
-	 *
-	 * @returns {Function|Object} The object mimicking the original object, but with
-	 * every action creator wrapped into the `dispatch` call. If you passed a
-	 * function as `actionCreators`, the return value will also be a single
-	 * function.
-	 */
-	function bindActionCreators(actionCreators, dispatch) {
-	  if (typeof actionCreators === 'function') {
-	    return bindActionCreator(actionCreators, dispatch);
-	  }
-
-	  if (typeof actionCreators !== 'object' || actionCreators === null) {
-	    throw new Error('bindActionCreators expected an object or a function, instead received ' + (actionCreators === null ? 'null' : typeof actionCreators) + '. ' + 'Did you write "import ActionCreators from" instead of "import * as ActionCreators from"?');
-	  }
-
-	  var keys = Object.keys(actionCreators);
-	  var boundActionCreators = {};
-	  for (var i = 0; i < keys.length; i++) {
-	    var key = keys[i];
-	    var actionCreator = actionCreators[key];
-	    if (typeof actionCreator === 'function') {
-	      boundActionCreators[key] = bindActionCreator(actionCreator, dispatch);
-	    }
-	  }
-	  return boundActionCreators;
-	}
-
-/***/ },
-/* 318 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.__esModule = true;
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	exports["default"] = applyMiddleware;
-
-	var _compose = __webpack_require__(319);
-
-	var _compose2 = _interopRequireDefault(_compose);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-	/**
-	 * Creates a store enhancer that applies middleware to the dispatch method
-	 * of the Redux store. This is handy for a variety of tasks, such as expressing
-	 * asynchronous actions in a concise manner, or logging every action payload.
-	 *
-	 * See `redux-thunk` package as an example of the Redux middleware.
-	 *
-	 * Because middleware is potentially asynchronous, this should be the first
-	 * store enhancer in the composition chain.
-	 *
-	 * Note that each middleware will be given the `dispatch` and `getState` functions
-	 * as named arguments.
-	 *
-	 * @param {...Function} middlewares The middleware chain to be applied.
-	 * @returns {Function} A store enhancer applying the middleware.
-	 */
-	function applyMiddleware() {
-	  for (var _len = arguments.length, middlewares = Array(_len), _key = 0; _key < _len; _key++) {
-	    middlewares[_key] = arguments[_key];
-	  }
-
-	  return function (createStore) {
-	    return function (reducer, initialState, enhancer) {
-	      var store = createStore(reducer, initialState, enhancer);
-	      var _dispatch = store.dispatch;
-	      var chain = [];
-
-	      var middlewareAPI = {
-	        getState: store.getState,
-	        dispatch: function dispatch(action) {
-	          return _dispatch(action);
-	        }
-	      };
-	      chain = middlewares.map(function (middleware) {
-	        return middleware(middlewareAPI);
-	      });
-	      _dispatch = _compose2["default"].apply(undefined, chain)(store.dispatch);
-
-	      return _extends({}, store, {
-	        dispatch: _dispatch
-	      });
-	    };
-	  };
-	}
-
-/***/ },
-/* 319 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	exports.__esModule = true;
-	exports["default"] = compose;
-	/**
-	 * Composes single-argument functions from right to left. The rightmost
-	 * function can take multiple arguments as it provides the signature for
-	 * the resulting composite function.
-	 *
-	 * @param {...Function} funcs The functions to compose.
-	 * @returns {Function} A function obtained by composing the argument functions
-	 * from right to left. For example, compose(f, g, h) is identical to doing
-	 * (...args) => f(g(h(...args))).
-	 */
-
-	function compose() {
-	  for (var _len = arguments.length, funcs = Array(_len), _key = 0; _key < _len; _key++) {
-	    funcs[_key] = arguments[_key];
-	  }
-
-	  if (funcs.length === 0) {
-	    return function (arg) {
-	      return arg;
-	    };
-	  } else {
-	    var _ret = function () {
-	      var last = funcs[funcs.length - 1];
-	      var rest = funcs.slice(0, -1);
-	      return {
-	        v: function v() {
-	          return rest.reduceRight(function (composed, f) {
-	            return f(composed);
-	          }, last.apply(undefined, arguments));
-	        }
-	      };
-	    }();
-
-	    if (typeof _ret === "object") return _ret.v;
-	  }
-	}
-
-/***/ },
-/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* Riot v2.4.1, @license MIT */
@@ -12640,7 +10836,7 @@
 	  /* istanbul ignore next */
 	  if (typeof exports === T_OBJECT)
 	    module.exports = riot
-	  else if ("function" === T_FUNCTION && typeof __webpack_require__(321) !== T_UNDEF)
+	  else if ("function" === T_FUNCTION && typeof __webpack_require__(301) !== T_UNDEF)
 	    !(__WEBPACK_AMD_DEFINE_RESULT__ = function() { return riot }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
 	  else
 	    window.riot = riot
@@ -12649,7 +10845,7 @@
 
 
 /***/ },
-/* 321 */
+/* 301 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -12657,94 +10853,110 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 322 */
+/* 302 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	  value: true
 	});
+	var riot = __webpack_require__(300);
 
-	var _action = __webpack_require__(300);
+	function Store() {
+	  var _store = {};
+	  var isDispatching = false;
 
-	var globalJobsEvent;
+	  riot.observable(this);
 
-	function LoginEvent() {
-		return function (riot, store) {
-			return function () {
+	  this.dispatch = function (actionType, data) {
+	    this.trigger('action', actionType, data);
+	  };
 
-				riot.observable(this);
+	  this.getStore = function () {
+	    return _store;
+	  };
 
-				this.on('login', function (data) {
-					return store.dispatch(_action.TS_Login.login(data.username, data.password, store));
-				});
-				this.on('regester_jobs_event', function (je) {
-					return globalJobsEvent = je;
-				});
-			};
-		};
+	  this.update = function (store) {
+	    if (store !== _store) {
+	      _store = store;
+	      this.trigger('update', _store);
+	    }
+	  };
+
+	  this.on('action', function (actionType, data) {
+	    console.log('action', actionType, data);
+	  });
+
+	  this.on('update', function () {
+	    console.log('update ', this.getStore());
+	  });
 	}
 
-	var loginEvent = LoginEvent();
+	var store = new Store();
 
-	exports.default = loginEvent;
+	var storeMixin = {
+	  init: function init() {
+	    this._store = store;
+	    var self = this;
 
-/***/ },
-/* 323 */
-/***/ function(module, exports, __webpack_require__) {
+	    if (!this.updater) throw "this.updater(store, actionType, data) needs to be defined";
 
-	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+	    if (!this.handler) throw "this.handler(oldData, newData) needs to be defined";
 
-	riot.tag2('page', '<div class="ui container"> <div id="view"></div> </div>', '', '', function (opts) {});
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(320)))
+	    if (!this.path || !this.path.length) throw "this.path needs to be defined";
 
-/***/ },
-/* 324 */
-/***/ function(module, exports, __webpack_require__) {
+	    this.on('mount', function () {
+	      self.currentData = self.getData(store.getStore());
 
-	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+	      store.on('update', function () {
 
-	riot.tag2('signuporsignin', '<div class="ui two column middle aligned very relaxed stackable padded grid"> <div class="center aligned column"> <div class="ui small blue labeled icon button" onclick="{this.showSignInModal}"> <i class="sign in icon"></i> Login </div> <div class="content"> <div class="description light padding">Sign in using your TermSheet Account</div> </div> </div> <div class="ui vertical divider"> Or </div> <div class="center aligned column"> <div class="ui small green labeled icon button"> <i class="signup icon"></i> Sign Up </div> <div class="content"> <div class="description light padding">Create your TermSheet Account</div> </div> </div> </div> <div class="ui modal"> <div style="padding:3.5em 1em 1em;"> <form class="ui form" id="signinForm" onsubmit="{this.loginUser}"> <h4 class="ui dividing header">Login</h4> <div> <div class="field"> <label>Username</label> <input type="text" name="username" placeholder="username"> </div> <div class="field"> <label>Password</label> <input type="password" name="password" placeholder="password"> </div> <button __disabled="{loading}" class="{loading: loading, ui: true, button: true}" type="submit" form="signinForm" value="Submit">SignIn</button> </div> </form> </div> </div>', '', '', function (opts) {
+	        var newData = self.getData(store.getStore());
+	        var oldData = self.currentData;
 
-		// var loginEvent = new LoginEvent();
+	        if (newData !== oldData) {
+	          self.currentData = newData;
 
-		var self = this;
+	          self.handler(oldData, newData);
 
-		this.showSignInModal = function (event) {
-			$('.ui.modal').modal('show');
-		};
+	          self.update();
+	        }
+	      });
 
-		this.loading = false;
+	      store.on('action', function (actionType, data) {
+	        var storeData = self.getData(store.getStore());
+	        var updatedStoreData = self.updater(storeData, actionType, data);
 
-		this.on('mount', function () {
-			loginEvent.on('login_success', function () {
-				self.loading = false;
-				self.update();
-				$('.ui.modal').modal('hide');
-				console.log('signup login_requested');
-			});
-		});
+	        if (updatedStoreData !== storeData) {
+	          var newObject = {};
+	          newObject[self.path] = updatedStoreData;
 
-		this.loginUser = function () {
-			self.loading = true;
-			// self.update()
+	          var newStoreData = Object.assign({}, store.getStore(), newObject);
 
-			loginEvent.trigger('login', { username: this.username.value, password: this.password.value });
-		};
-	});
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(320)))
+	          if (newStoreData === undefined) thrown("updater must return the store");
 
-/***/ },
-/* 325 */
-/***/ function(module, exports, __webpack_require__) {
+	          store.update(newStoreData);
+	        }
+	      });
+	    });
+	  },
 
-	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+	  dispatch: function dispatch(action) {
+	    var actionType = action.type;
+	    var data = action.data;
 
-	riot.tag2('dashboard', '<div class="ui stackable centered grid"> <div class=" three column row"> <div each="{cards}" class="column"> <div class="ui card"> <div class="image"> <img src="http://semantic-ui.com/images/avatar/small/matt.jpg"> </div> <div class="content"> <a class="header">Kristy</a> <div class="meta"> <span class="date">Joined in 2013</span> </div> <div class="description"> Kristy is an art director living in New York. </div> </div> <div class="extra content"> <a> <i class="user icon"></i> 22 Friends </a> </div> </div> </div> </div> </div>', '', '', function (opts) {
-			this.cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-	});
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(320)))
+	    if (!actionType) throw "{type:'ACTION_TYPE'} must be defined";
+
+	    store.dispatch(actionType, data);
+	  },
+	  getData: function getData(newStore) {
+	    return store.getStore()[this.path];
+	  }
+
+	};
+
+	exports.storeMixin = storeMixin;
+	exports.default = store;
 
 /***/ }
 /******/ ]);

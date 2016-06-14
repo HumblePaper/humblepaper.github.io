@@ -88,7 +88,6 @@ var callAPI = function(endpoint, method = 'GET', payload){
 	var header = {}
 
 	var apiConfig = {
-		 crossDomain: 'cors',
 		 method,
 		 header,
 		 "crossDomain": true,
@@ -113,15 +112,8 @@ var callAPI = function(endpoint, method = 'GET', payload){
 	}
 
 
-
-	return $.ajax(apiConfig).then(response => {
-		console.log('response', response)
-		// if (response.status >= 400)
-		// 	throw { status:response.status}
-		
-		return response
-
-	})
+	console.log(apiConfig)
+	return $.ajax(apiConfig)
 };
 var performJob = function(endpoint, method='GET', payload, actions){
 	
@@ -135,7 +127,7 @@ var performJob = function(endpoint, method='GET', payload, actions){
 				store.dispatch('ADD_JOB', jobObject)
 					
 			})
-			.catch( data => store.dispatch(failedRequest, data))
+			.fail(( jqXHR, textStatus, errorThrown) => store.dispatch(failedRequest, errorThrown))
 
 }
 

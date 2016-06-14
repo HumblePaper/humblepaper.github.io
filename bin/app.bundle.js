@@ -7996,6 +7996,31 @@
 	// shim for using process in browser
 
 	var process = module.exports = {};
+
+	// cached from whatever global is present so that test runners that stub it
+	// don't break things.  But we need to wrap it in a try catch in case it is
+	// wrapped in strict mode code which doesn't define any globals.  It's inside a
+	// function because try/catches deoptimize in certain engines.
+
+	var cachedSetTimeout;
+	var cachedClearTimeout;
+
+	(function () {
+	  try {
+	    cachedSetTimeout = setTimeout;
+	  } catch (e) {
+	    cachedSetTimeout = function () {
+	      throw new Error('setTimeout is not defined');
+	    }
+	  }
+	  try {
+	    cachedClearTimeout = clearTimeout;
+	  } catch (e) {
+	    cachedClearTimeout = function () {
+	      throw new Error('clearTimeout is not defined');
+	    }
+	  }
+	} ())
 	var queue = [];
 	var draining = false;
 	var currentQueue;
@@ -8020,7 +8045,7 @@
 	    if (draining) {
 	        return;
 	    }
-	    var timeout = setTimeout(cleanUpNextTick);
+	    var timeout = cachedSetTimeout(cleanUpNextTick);
 	    draining = true;
 
 	    var len = queue.length;
@@ -8037,7 +8062,7 @@
 	    }
 	    currentQueue = null;
 	    draining = false;
-	    clearTimeout(timeout);
+	    cachedClearTimeout(timeout);
 	}
 
 	process.nextTick = function (fun) {
@@ -8049,7 +8074,7 @@
 	    }
 	    queue.push(new Item(fun, args));
 	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
+	        cachedSetTimeout(drainQueue, 0);
 	    }
 	};
 
@@ -11012,8 +11037,6 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 	var API_ROOT = 'http://api.termsheet.io/';
 
 	var remote = true;
@@ -11088,8 +11111,6 @@
 	// }
 
 	var callAPI = function callAPI(endpoint) {
-		var _apiConfig;
-
 		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
 		var payload = arguments[2];
 
@@ -11097,11 +11118,15 @@
 
 		var header = {};
 
-		var apiConfig = (_apiConfig = {
-			crossDomain: 'cors',
+		var apiConfig = {
 			method: method,
-			header: header
-		}, _defineProperty(_apiConfig, 'crossDomain', true), _defineProperty(_apiConfig, "async", true), _defineProperty(_apiConfig, "url", endpoint), _defineProperty(_apiConfig, "processData", false), _apiConfig);
+			header: header,
+			"crossDomain": true,
+			"async": true,
+			"url": endpoint,
+			"processData": false
+
+		};
 
 		if (payload) {
 			header['Content-Type'] = 'application/json';
@@ -11115,13 +11140,8 @@
 			header['Access-Control-Allow-Origin'] = API_ROOT;
 		}
 
-		return $.ajax(apiConfig).then(function (response) {
-			console.log('response', response);
-			// if (response.status >= 400)
-			// 	throw { status:response.status}
-
-			return response;
-		});
+		console.log(apiConfig);
+		return $.ajax(apiConfig);
 	};
 	var performJob = function performJob(endpoint) {
 		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
@@ -11141,8 +11161,8 @@
 
 			_store2.default.dispatch(successRequest);
 			_store2.default.dispatch('ADD_JOB', jobObject);
-		}).catch(function (data) {
-			return _store2.default.dispatch(failedRequest, data);
+		}).fail(function (jqXHR, textStatus, errorThrown) {
+			return _store2.default.dispatch(failedRequest, errorThrown);
 		});
 	};
 
@@ -11838,6 +11858,9 @@
 	  var poll = function poll() {
 	    (0, _api.callAPI)('data.json').then(function (json) {
 	      console.log('poll', json);
+	    }).fail(function (jqXHR, textStatus, errorThrown) {
+	      console.log(jqXHR, textStatus, errorThrown);
+	    }).always(function () {
 	      setTimeout(poll, self.currentData.time);
 	    });
 	    // .catch(json =>{

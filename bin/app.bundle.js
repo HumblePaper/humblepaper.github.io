@@ -11039,8 +11039,9 @@
 
 	var API_ROOT = 'http://api.termsheet.io/';
 
-	var remote = true;
+	var remote = false;
 	if (!remote) {
+
 		var tempArray = [];
 		_fetchMock2.default.mock('http://api.termsheet.io/login', 'POST', function (url, opts) {
 			var jobId = 'something';
@@ -11077,20 +11078,56 @@
 		return data.macaroon.macaroon;
 	};
 
+	var callAPI = function callAPI(endpoint) {
+		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
+		var payload = arguments[2];
+
+		var endpoint = API_ROOT + endpoint;
+
+		var header = {};
+
+		var apiConfig = {
+			mode: 'cors',
+			method: method,
+			header: header
+		};
+
+		if (payload) {
+			header['Content-Type'] = 'application/json';
+			apiConfig['body'] = JSON.stringify(payload);
+		}
+
+		if (checkForMacaroon(_store2.default.getStore())) {
+			header['Authorization'] = getMacaroon(_store2.default.getStore());
+			header['Access-Control-Allow-Headers'] = 'AUTHORIZATION';
+			header['Access-Control-Allow-Origin'] = API_ROOT;
+		}
+
+		return fetch(endpoint, apiConfig).then(function (response) {
+			if (response.status >= 400) throw { status: response.status };
+
+			return response.json();
+		});
+	};
+
 	// var callAPI = function(endpoint, method = 'GET', payload){
 	// 	var endpoint = API_ROOT + endpoint
 
 	// 	var header = {}
 
 	// 	var apiConfig = {
-	// 		 mode: 'cors',
 	// 		 method,
-	// 		 header
+	// 		 header,
+	// 		 "crossDomain": true,
+	// 		 "async": true,
+	// 		 "url": endpoint,
+	// 		 "processData": false
+
 	// 	}
 
 	// 	if(payload){
 	// 		header['Content-Type'] =  'application/json'
-	// 		apiConfig['body'] = JSON.stringify(payload)
+	// 		apiConfig['data'] = JSON.stringify(payload)
 	// 	}
 
 	// 	if(checkForMacaroon(store.getStore())){
@@ -11101,48 +11138,10 @@
 
 	// 	}
 
-	// 	return fetch(endpoint, apiConfig).then(response => {
-	// 		if (response.status >= 400)
-	// 			throw { status:response.status}
+	// 	console.log(apiConfig)
+	// 	return $.ajax(apiConfig)
+	// };
 
-	// 		return response.json()
-
-	// 	})
-	// }
-
-	var callAPI = function callAPI(endpoint) {
-		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
-		var payload = arguments[2];
-
-		var endpoint = API_ROOT + endpoint;
-
-		var header = {};
-
-		var apiConfig = {
-			method: method,
-			header: header,
-			"crossDomain": true,
-			"async": true,
-			"url": endpoint,
-			"processData": false
-
-		};
-
-		if (payload) {
-			header['Content-Type'] = 'application/json';
-			apiConfig['data'] = JSON.stringify(payload);
-		}
-
-		if (checkForMacaroon(_store2.default.getStore())) {
-			console.log('-------');
-			header['Authorization'] = getMacaroon(_store2.default.getStore());
-			header['Access-Control-Allow-Headers'] = 'AUTHORIZATION';
-			header['Access-Control-Allow-Origin'] = API_ROOT;
-		}
-
-		console.log(apiConfig);
-		return $.ajax(apiConfig);
-	};
 	var performJob = function performJob(endpoint) {
 		var method = arguments.length <= 1 || arguments[1] === undefined ? 'GET' : arguments[1];
 		var payload = arguments[2];
@@ -11161,8 +11160,8 @@
 
 			_store2.default.dispatch(successRequest);
 			_store2.default.dispatch('ADD_JOB', jobObject);
-		}).fail(function (jqXHR, textStatus, errorThrown) {
-			return _store2.default.dispatch(failedRequest, errorThrown);
+		}).catch(function (status) {
+			return _store2.default.dispatch(failedRequest, status);
 		});
 	};
 
@@ -11858,16 +11857,11 @@
 	  var poll = function poll() {
 	    (0, _api.callAPI)('data.json').then(function (json) {
 	      console.log('poll', json);
-	    }).fail(function (jqXHR, textStatus, errorThrown) {
-	      console.log(jqXHR, textStatus, errorThrown);
-	    }).always(function () {
+	      setTimeout(poll, self.currentData.time);
+	    }).catch(function (json) {
+	      console.log('poll', json);
 	      setTimeout(poll, self.currentData.time);
 	    });
-	    // .catch(json =>{
-	    // 	console.log('poll', json)
-	    // 	setTimeout(poll, self.currentData.time)
-
-	    // })
 	  };
 
 	  var startPoller = function startPoller() {

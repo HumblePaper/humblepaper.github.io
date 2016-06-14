@@ -26,17 +26,14 @@ import {storeMixin} from '../store'
   		 	callAPI('data.json')
   		 		.then(json =>{
   		 			console.log('poll', json)
-  		 		}).fail((jqXHR, textStatus, errorThrown)=>{
-            console.log(jqXHR, textStatus, errorThrown)
-            }).always(() =>{
             setTimeout(poll, self.currentData.time)
-
-              })
-  		 		// .catch(json =>{
-  		 		// 	console.log('poll', json)
-  		 		// 	setTimeout(poll, self.currentData.time)
+            
+  		 		})
+  		 		.catch(json =>{
+  		 			console.log('poll', json)
+  		 			setTimeout(poll, self.currentData.time)
   		 			
-  		 		// })
+  		 		})
   		 }
 
   		 var startPoller = function(){

@@ -1,11 +1,17 @@
 import store from '../store'
 import fetchMock from 'fetch-mock'
+
 var API_ROOT = 'http://api.termsheet.io/'
 
-var remote = true 
+var remote = false 
 if(!remote){
+
 	var tempArray = []
 	fetchMock
+		.mock('http://api.termsheet.io/get_anonymous_token', 'POST', {
+			Authorization:"testmacroon"
+		})
+
 		.mock('http://api.termsheet.io/login', 'POST', (url, opts)=>  {
 			var jobId = 'something'
 			
@@ -46,20 +52,59 @@ var getMacaroon = function (data) {
 	return data.macaroon.macaroon
 }
 
+var callAPI = function(endpoint, method = 'GET', payload){
+	var endpoint = API_ROOT + endpoint
+
+	var header = {}
+
+	var apiConfig = {
+		 mode: 'cors',
+		 method,
+		 header
+	}
+
+	if(payload){
+		header['Content-Type'] =  'application/json'
+		apiConfig['body'] = JSON.stringify(payload)
+	}
+
+	if(checkForMacaroon(store.getStore())){
+		header['Authorization'] = getMacaroon(store.getStore())
+		header['Access-Control-Allow-Headers'] = 'AUTHORIZATION'
+		header['Access-Control-Allow-Origin'] = API_ROOT
+
+
+	}
+
+
+
+	return fetch(endpoint, apiConfig).then(response => {
+		if (response.status >= 400)
+			throw { status:response.status}
+		
+		return response.json()
+
+	})
+}
+
 // var callAPI = function(endpoint, method = 'GET', payload){
 // 	var endpoint = API_ROOT + endpoint
 
 // 	var header = {}
 
 // 	var apiConfig = {
-// 		 mode: 'cors',
 // 		 method,
-// 		 header
+// 		 header,
+// 		 "crossDomain": true,
+// 		 "async": true,
+// 		 "url": endpoint,
+// 		 "processData": false
+
 // 	}
 
 // 	if(payload){
 // 		header['Content-Type'] =  'application/json'
-// 		apiConfig['body'] = JSON.stringify(payload)
+// 		apiConfig['data'] = JSON.stringify(payload)
 // 	}
 
 // 	if(checkForMacaroon(store.getStore())){
@@ -72,49 +117,10 @@ var getMacaroon = function (data) {
 // 	}
 
 
+// 	console.log(apiConfig)
+// 	return $.ajax(apiConfig)
+// };
 
-// 	return fetch(endpoint, apiConfig).then(response => {
-// 		if (response.status >= 400)
-// 			throw { status:response.status}
-		
-// 		return response.json()
-
-// 	})
-// }
-
-var callAPI = function(endpoint, method = 'GET', payload){
-	var endpoint = API_ROOT + endpoint
-
-	var header = {}
-
-	var apiConfig = {
-		 method,
-		 header,
-		 "crossDomain": true,
-		 "async": true,
-		 "url": endpoint,
-		 "processData": false
-
-	}
-
-	if(payload){
-		header['Content-Type'] =  'application/json'
-		apiConfig['data'] = JSON.stringify(payload)
-	}
-
-	if(checkForMacaroon(store.getStore())){
-		console.log('-------')
-		header['Authorization'] = getMacaroon(store.getStore())
-		header['Access-Control-Allow-Headers'] = 'AUTHORIZATION'
-		header['Access-Control-Allow-Origin'] = API_ROOT
-
-
-	}
-
-
-	console.log(apiConfig)
-	return $.ajax(apiConfig)
-};
 var performJob = function(endpoint, method='GET', payload, actions){
 	
 	var [ successRequest, failedRequest, success, failed ] = actions
@@ -127,7 +133,7 @@ var performJob = function(endpoint, method='GET', payload, actions){
 				store.dispatch('ADD_JOB', jobObject)
 					
 			})
-			.fail(( jqXHR, textStatus, errorThrown) => store.dispatch(failedRequest, errorThrown))
+			.catch((status) => store.dispatch(failedRequest, status))
 
 }
 

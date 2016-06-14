@@ -15,7 +15,7 @@ import {storeMixin} from '../store'
 
   		 var initialData = {
   		 	status: actions.POLLER_NOT_RUNNING,
-  		 	time: 500
+  		 	time: 5000
   		 }	
   		 // --- PATH ---
 

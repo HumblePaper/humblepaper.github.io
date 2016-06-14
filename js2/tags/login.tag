@@ -107,6 +107,11 @@ import {performJob} from '../api'
 
               switch(self.getStatus(newData)){
                 case actions.LOGIN_SUCCESS:
+                  self.dispatch({ 
+                                  type: 'NEW_ROUTE',
+                                  data: {url:'dashboard'} 
+                                })
+
 
 
 

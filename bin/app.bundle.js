@@ -56,6 +56,10 @@
 
 	__webpack_require__(309);
 
+	__webpack_require__(310);
+
+	__webpack_require__(311);
+
 	var _store = __webpack_require__(302);
 
 	var _store2 = _interopRequireDefault(_store);
@@ -64,11 +68,13 @@
 
 	var riot = __webpack_require__(300);
 
+	window.riot = riot;
+
 	console.log('store', _store2.default);
 
 	riot.mount('*');
 
-	riot.mount('#view', 'login');
+	// riot.mount('#view', 'login')
 
 /***/ },
 /* 1 */
@@ -8241,6 +8247,10 @@
 
 	      switch (self.getStatus(newData)) {
 	        case actions.LOGIN_SUCCESS:
+	          self.dispatch({
+	            type: 'NEW_ROUTE',
+	            data: { url: 'dashboard' }
+	          });
 
 	      }
 	    }
@@ -11852,7 +11862,7 @@
 
 	  var initialData = {
 	    status: actions.POLLER_NOT_RUNNING,
-	    time: 500
+	    time: 5000
 	  };
 	  // --- PATH ---
 
@@ -12014,6 +12024,102 @@
 	  };
 	  self.mixin(_store.storeMixin);
 	});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
+
+/***/ },
+/* 310 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _store = __webpack_require__(302);
+
+	var _riot = __webpack_require__(300);
+
+	var _riot2 = _interopRequireDefault(_riot);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	_riot2.default.tag2('router', '', '', '', function (opts) {
+	  var self = this;
+
+	  var routes = {
+	    home: function home() {
+	      return _riot2.default.mount('#view', 'login');
+	    },
+	    dashboard: function dashboard() {
+	      return _riot2.default.mount('#view', 'dashboard');
+	    }
+	  };
+
+	  function routeHandler(collection, id, action) {
+	    console.log('route', collection, id, action);
+	    var routeFn = routes[collection || 'home'];
+	    routeFn(id, action);
+	  }
+
+	  var actions = {
+	    DEFAULT: 'DEFAULT',
+	    NEW_ROUTE: 'NEW_ROUTE',
+	    ROUTE_SET: 'ROUTE_SET'
+
+	  };
+
+	  var initialData = {
+	    status: actions.DEFAULT,
+	    url: '/'
+	  };
+
+	  self.path = 'router';
+	  //--- UPDATER --
+	  self.updater = function () {
+	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+	    var actionType = arguments[1];
+	    var data = arguments[2];
+
+	    switch (actionType) {
+	      case actions.NEW_ROUTE:
+	        return Object.assign({}, { status: actionType }, data);
+	      case actions.ROUTE_SET:
+	        return Object.assign({}, { status: actionType });
+
+	      default:
+	        return store;
+
+	    }
+	  };
+
+	  self.handler = function (oldStore, newStore) {
+	    if (self.getStatus(oldStore) !== self.getStatus(newStore)) {
+	      switch (self.getStatus(newStore)) {
+
+	        case actions.NEW_ROUTE:
+	          _riot2.default.route(newStore.url);
+	          self.dispatch({ type: actions.ROUTE_SET });
+
+	      }
+	    }
+	  };
+
+	  self.on('storeMount', function () {
+
+	    console.log(self.path, 'storeMount');
+	    _riot2.default.route.base('/');
+	    _riot2.default.route.start(true);
+	    _riot2.default.route(routeHandler);
+	    _riot2.default.route.exec(routeHandler);
+	  });
+
+	  self.mixin(_store.storeMixin);
+	});
+
+/***/ },
+/* 311 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	riot.tag2('dashboard', '<div> dashboard </div>', '', '', function (opts) {});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
 /***/ }

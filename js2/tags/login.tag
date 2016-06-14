@@ -79,7 +79,7 @@ import {performJob} from '../api'
   			  
   			  // try to make it Immutable 
   			  self.updater = function(store = initialData, actionType, data){
-  			  	console.log('updater', store, actionType, data)
+  			  	// console.log('updater', store, actionType, data)
   			  	
   			  	switch(actionType){
   			  		case actions.LOGIN_REQUESTED:

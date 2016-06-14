@@ -26,8 +26,12 @@ import {storeMixin} from '../store'
   		 	callAPI('data.json')
   		 		.then(json =>{
   		 			console.log('poll', json)
+            json.forEach(function(job){
+              self.dispatch({ type: 'COMPLETED_JOB' , data: job })
+            })
+
             setTimeout(poll, self.currentData.time)
-            
+
   		 		})
   		 		.catch(json =>{
   		 			console.log('poll', json)
@@ -47,7 +51,7 @@ import {storeMixin} from '../store'
   		 // --- UPDATER --- 
 
   		 self.updater = function (store = initialData, actionType, data) {
-  			 console.log(self.path ,'updater', store, actionType, data)
+  			 // console.log(self.path ,'updater', store, actionType, data)
   			 switch(actionType){
   			  	case actions.POLLER_START:
   			  		var newStore = Object.assign({}, store, { status : actionType })

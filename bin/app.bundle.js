@@ -54,6 +54,8 @@
 
 	__webpack_require__(308);
 
+	__webpack_require__(309);
+
 	var _store = __webpack_require__(302);
 
 	var _store2 = _interopRequireDefault(_store);
@@ -8212,7 +8214,7 @@
 	    var actionType = arguments[1];
 	    var data = arguments[2];
 
-	    console.log('updater', store, actionType, data);
+	    // console.log('updater', store, actionType, data)
 
 	    switch (actionType) {
 	      case actions.LOGIN_REQUESTED:
@@ -11043,13 +11045,15 @@
 	if (!remote) {
 
 		var tempArray = [];
-		_fetchMock2.default.mock('http://api.termsheet.io/login', 'POST', function (url, opts) {
+		_fetchMock2.default.mock(API_ROOT + 'get_anonymous_token', 'GET', {
+			Authorization: "testmacroon"
+		}).mock('http://api.termsheet.io/login', 'POST', function (url, opts) {
 			var jobId = 'something';
 
 			if (url === 'http://api.termsheet.io/login') {
 				tempArray.push({
 					jobId: jobId,
-					status: 200,
+					status_code: 200,
 					data: {
 						macaroon: 'asdfghjkjhgfasdfghjklkgfsdfghjk'
 					}
@@ -11061,8 +11065,9 @@
 			};
 		}).mock('http://api.termsheet.io/data.json', 'GET', function (url, opts) {
 			if (tempArray.length) {
-				var temp = tempArray.pop();
-				return tempArray.pop();
+				var jsonString = JSON.stringify(tempArray);
+				tempArray = [];
+				return jsonString;
 			}
 			return {};
 		});
@@ -11105,7 +11110,7 @@
 
 		return fetch(endpoint, apiConfig).then(function (response) {
 			if (response.status >= 400) throw { status: response.status };
-
+			console.log(response);
 			return response.json();
 		});
 	};
@@ -11857,6 +11862,10 @@
 	  var poll = function poll() {
 	    (0, _api.callAPI)('data.json').then(function (json) {
 	      console.log('poll', json);
+	      json.forEach(function (job) {
+	        self.dispatch({ type: 'COMPLETED_JOB', data: job });
+	      });
+
 	      setTimeout(poll, self.currentData.time);
 	    }).catch(function (json) {
 	      console.log('poll', json);
@@ -11879,7 +11888,7 @@
 	    var actionType = arguments[1];
 	    var data = arguments[2];
 
-	    console.log(self.path, 'updater', store, actionType, data);
+	    // console.log(self.path ,'updater', store, actionType, data)
 	    switch (actionType) {
 	      case actions.POLLER_START:
 	        var newStore = Object.assign({}, store, { status: actionType });
@@ -11902,6 +11911,107 @@
 	    }
 	  };
 
+	  self.mixin(_store.storeMixin);
+	});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
+
+/***/ },
+/* 309 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	var _store = __webpack_require__(302);
+
+	riot.tag2('jobs', '', '', '', function (opts) {
+	  var self = this;
+
+	  var completedJobs = [];
+	  var actions = {
+	    ADD_JOB: 'ADD_JOB',
+	    COMPLETED_JOB: 'COMPLETED_JOB',
+	    REQUSTED_JOB: 'REQUSTED_JOB',
+	    DISPATCHED_JOB: 'DISPATCHED_JOB'
+	  };
+
+	  var initialData = {};
+
+	  self.path = 'jobs';
+	  // ------- DEFINE ACTIONS ----------
+
+	  var completeJob = function completeJob(jobId, payload) {
+	    var status = payload.status;
+	    var data = payload.data;
+	  };
+
+	  var dispatchJob = function dispatchJob(data, status, success, failed) {
+	    if (status >= 400) {
+	      self.dispatch({ type: failed, data: data });
+	    } else {
+	      self.dispatch({ type: success, data: data });
+	    }
+	  };
+
+	  var dispatchJobs = function dispatchJobs() {
+	    completedJobs.forEach(function (job) {
+	      if (job.status === actions.COMPLETED_JOB) {
+	        job.status = actions.DISPATCHED_JOB;
+	        dispatchJob(job.data, job.status_code, job.success, job.failed);
+	      }
+	    });
+	  };
+
+	  // -- updater
+	  self.updater = function () {
+	    var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+	    var actionType = arguments[1];
+	    var data = arguments[2];
+
+	    console.log(self.path, 'updater', store, actionType, data);
+
+	    switch (actionType) {
+
+	      case actions.ADD_JOB:
+	        var jobId = data.jobId;
+
+	        var newStore = {};
+	        newStore[jobId] = Object.assign({}, data, { status: actions.REQUSTED_JOB });
+
+	        return Object.assign({}, store, newStore);
+
+	      case actions.COMPLETED_JOB:
+	        var jobId = data.jobId;
+	        var data = data.data;
+	        var status_code = data.status_code;
+
+	        if (store[jobId]) {
+	          var newJob = {};
+	          newJob[jobId] = Object.assign({}, store[jobId], { data: data, status_code: status_code, status: actionType });
+
+	          return Object.assign({}, store, newJob);
+	        } else {
+	          return store;
+	        }
+	      default:
+	        return store;
+	    }
+	  };
+
+	  self.handler = function (oldStore, newStore) {
+	    for (var key in newStore) {
+	      console.log('JOBSSSSSSSSSS', newStore[key]);
+	      if (newStore[key].status == actions.COMPLETED_JOB) {
+	        var filterdJobs = completedJobs.filter(function (job) {
+	          return job.jobId === key;
+	        });
+	        if (filterdJobs.length === 0) {
+	          completedJobs.push(Object.assign({}, newStore[key]));
+	        }
+	      }
+	    }
+	    console.log('completedJobs', completedJobs);
+	    dispatchJobs();
+	  };
 	  self.mixin(_store.storeMixin);
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))

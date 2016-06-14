@@ -8,7 +8,7 @@ if(!remote){
 
 	var tempArray = []
 	fetchMock
-		.mock('http://api.termsheet.io/get_anonymous_token', 'POST', {
+		.mock(API_ROOT+'get_anonymous_token', 'GET', {
 			Authorization:"testmacroon"
 		})
 
@@ -18,7 +18,7 @@ if(!remote){
 			if ( url === 'http://api.termsheet.io/login'){
 				tempArray.push({
 					jobId:jobId,
-					status: 200,
+					status_code: 200,
 					data:{
 						macaroon: 'asdfghjkjhgfasdfghjklkgfsdfghjk'
 					}
@@ -31,8 +31,9 @@ if(!remote){
 		})
 		.mock('http://api.termsheet.io/data.json', 'GET', (url, opts) => {
 			if (tempArray.length){
-				var temp = tempArray.pop()
-				return tempArray.pop()
+				var jsonString = JSON.stringify(tempArray)
+				tempArray = []
+				return jsonString
 			}
 			return {}
 		})
@@ -81,7 +82,7 @@ var callAPI = function(endpoint, method = 'GET', payload){
 	return fetch(endpoint, apiConfig).then(response => {
 		if (response.status >= 400)
 			throw { status:response.status}
-		
+		console.log(response)
 		return response.json()
 
 	})

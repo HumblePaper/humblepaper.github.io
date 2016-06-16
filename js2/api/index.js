@@ -1,9 +1,9 @@
 import store from '../store'
 import fetchMock from 'fetch-mock'
 
-var API_ROOT = 'http://api.termsheet.io/'
+var API_ROOT = 'http://192.168.99.100/'
 
-var remote = false 
+var remote = true 
 if(!remote){
 
 	var tempArray = []
@@ -12,10 +12,10 @@ if(!remote){
 			Authorization:"testmacroon"
 		})
 
-		.mock('http://api.termsheet.io/login', 'POST', (url, opts)=>  {
+		.mock('http://192.168.99.100/login', 'POST', (url, opts)=>  {
 			var jobId = 'something'
 			
-			if ( url === 'http://api.termsheet.io/login'){
+			if ( url === 'http://192.168.99.100/login'){
 				tempArray.push({
 					jobId:jobId,
 					status_code: 200,
@@ -29,7 +29,7 @@ if(!remote){
 				jobId
 			}
 		})
-		.mock('http://api.termsheet.io/data.json', 'GET', (url, opts) => {
+		.mock('http://192.168.99.100/data.json', 'GET', (url, opts) => {
 			if (tempArray.length){
 				var jsonString = JSON.stringify(tempArray)
 				tempArray = []
@@ -61,21 +61,32 @@ var callAPI = function(endpoint, method = 'GET', payload){
 	var apiConfig = {
 		 mode: 'cors',
 		 method,
-		 header
+		 // header,
+		 credentials:"include"
 	}
+
 
 	if(payload){
 		header['Content-Type'] =  'application/json'
+		header["Accept"] =  "application/json",
+        
 		apiConfig['body'] = JSON.stringify(payload)
 	}
 
 	if(checkForMacaroon(store.getStore())){
+		console.log('checkForMacaroon', getMacaroon(store.getStore()))
 		header['Authorization'] = getMacaroon(store.getStore())
-		header['Access-Control-Allow-Headers'] = 'AUTHORIZATION'
-		header['Access-Control-Allow-Origin'] = API_ROOT
+		// header['Access-Control-Allow-Headers'] = 'authorization, cache-control, content-type'
+		// header['Access-Control-Allow-Origin'] = API_ROOT
+		// header['Access-Control-Request-Method'] = 'POST'
+
 
 
 	}
+
+	apiConfig['headers'] = new Headers(header)
+
+
 
 
 

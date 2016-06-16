@@ -11049,18 +11049,18 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var API_ROOT = 'http://api.termsheet.io/';
+	var API_ROOT = 'http://192.168.99.100/';
 
-	var remote = false;
+	var remote = true;
 	if (!remote) {
 
 		var tempArray = [];
 		_fetchMock2.default.mock(API_ROOT + 'get_anonymous_token', 'GET', {
 			Authorization: "testmacroon"
-		}).mock('http://api.termsheet.io/login', 'POST', function (url, opts) {
+		}).mock('http://192.168.99.100/login', 'POST', function (url, opts) {
 			var jobId = 'something';
 
-			if (url === 'http://api.termsheet.io/login') {
+			if (url === 'http://192.168.99.100/login') {
 				tempArray.push({
 					jobId: jobId,
 					status_code: 200,
@@ -11073,7 +11073,7 @@
 			return {
 				jobId: jobId
 			};
-		}).mock('http://api.termsheet.io/data.json', 'GET', function (url, opts) {
+		}).mock('http://192.168.99.100/data.json', 'GET', function (url, opts) {
 			if (tempArray.length) {
 				var jsonString = JSON.stringify(tempArray);
 				tempArray = [];
@@ -11104,19 +11104,24 @@
 		var apiConfig = {
 			mode: 'cors',
 			method: method,
-			header: header
+			// header,
+			credentials: "include"
 		};
 
 		if (payload) {
 			header['Content-Type'] = 'application/json';
-			apiConfig['body'] = JSON.stringify(payload);
+			header["Accept"] = "application/json", apiConfig['body'] = JSON.stringify(payload);
 		}
 
 		if (checkForMacaroon(_store2.default.getStore())) {
+			console.log('checkForMacaroon', getMacaroon(_store2.default.getStore()));
 			header['Authorization'] = getMacaroon(_store2.default.getStore());
-			header['Access-Control-Allow-Headers'] = 'AUTHORIZATION';
-			header['Access-Control-Allow-Origin'] = API_ROOT;
+			// header['Access-Control-Allow-Headers'] = 'authorization, cache-control, content-type'
+			// header['Access-Control-Allow-Origin'] = API_ROOT
+			// header['Access-Control-Request-Method'] = 'POST'
 		}
+
+		apiConfig['headers'] = new Headers(header);
 
 		return fetch(endpoint, apiConfig).then(function (response) {
 			if (response.status >= 400) throw { status: response.status };

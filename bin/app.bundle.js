@@ -60,6 +60,12 @@
 
 	__webpack_require__(311);
 
+	__webpack_require__(312);
+
+	__webpack_require__(313);
+
+	__webpack_require__(314);
+
 	var _store = __webpack_require__(302);
 
 	var _store2 = _interopRequireDefault(_store);
@@ -8004,31 +8010,6 @@
 	// shim for using process in browser
 
 	var process = module.exports = {};
-
-	// cached from whatever global is present so that test runners that stub it
-	// don't break things.  But we need to wrap it in a try catch in case it is
-	// wrapped in strict mode code which doesn't define any globals.  It's inside a
-	// function because try/catches deoptimize in certain engines.
-
-	var cachedSetTimeout;
-	var cachedClearTimeout;
-
-	(function () {
-	  try {
-	    cachedSetTimeout = setTimeout;
-	  } catch (e) {
-	    cachedSetTimeout = function () {
-	      throw new Error('setTimeout is not defined');
-	    }
-	  }
-	  try {
-	    cachedClearTimeout = clearTimeout;
-	  } catch (e) {
-	    cachedClearTimeout = function () {
-	      throw new Error('clearTimeout is not defined');
-	    }
-	  }
-	} ())
 	var queue = [];
 	var draining = false;
 	var currentQueue;
@@ -8053,7 +8034,7 @@
 	    if (draining) {
 	        return;
 	    }
-	    var timeout = cachedSetTimeout(cleanUpNextTick);
+	    var timeout = setTimeout(cleanUpNextTick);
 	    draining = true;
 
 	    var len = queue.length;
@@ -8070,7 +8051,7 @@
 	    }
 	    currentQueue = null;
 	    draining = false;
-	    cachedClearTimeout(timeout);
+	    clearTimeout(timeout);
 	}
 
 	process.nextTick = function (fun) {
@@ -8082,7 +8063,7 @@
 	    }
 	    queue.push(new Item(fun, args));
 	    if (queue.length === 1 && !draining) {
-	        cachedSetTimeout(drainQueue, 0);
+	        setTimeout(drainQueue, 0);
 	    }
 	};
 
@@ -10949,6 +10930,7 @@
 	  };
 
 	  this.update = function (store) {
+	    isDispatching = false;
 	    if (store !== _store) {
 	      _store = store;
 	      // setTimeout(this.trigger('update', _store))
@@ -12059,7 +12041,7 @@
 
 	  var routes = {
 	    home: function home() {
-	      return _riot2.default.mount('#view', 'login');
+	      return _riot2.default.mount('#view', 'home');
 	    },
 	    dashboard: function dashboard() {
 	      return _riot2.default.mount('#view', 'dashboard');
@@ -12134,6 +12116,99 @@
 	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
 
 	riot.tag2('dashboard', '<div> dashboard </div>', '', '', function (opts) {});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
+
+/***/ },
+/* 312 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	riot.tag2('home', '<login-modal></login-modal> <ts-button name="login" action="SHOW_LOGIN_MODAL"></ts-button>', '', '', function (opts) {});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
+
+/***/ },
+/* 313 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	var _store = __webpack_require__(302);
+
+	riot.tag2('login-modal', '<div class="ui modal"> <i class="close icon"></i> <div class="content"> <login></login> </div> </div>', '', '', function (opts) {
+		var self = this;
+		var actions = {
+			SHOW_LOGIN_MODAL: 'SHOW_LOGIN_MODAL',
+			HIDE_LOGIN_MODAL: 'HIDE_LOGIN_MODAL'
+		};
+
+		var initialData = {
+			status: actions.HIDE_LOGIN_MODAL
+		};
+
+		self.path = 'loginModal';
+
+		// -- Actions --
+		// --- UPDATER ---
+
+		self.updater = function () {
+			var store = arguments.length <= 0 || arguments[0] === undefined ? initialData : arguments[0];
+			var actionType = arguments[1];
+			var data = arguments[2];
+
+			switch (actionType) {
+				case actions.LOGIN_REQUESTED_SUCCESS:
+					var newStore = Object.assign({}, store, { status: actions.HIDE_LOGIN_MODAL });
+					return newStore;
+				case actions.SHOW_LOGIN_MODAL:
+					var newStore = Object.assign({}, store, { status: actions.SHOW_LOGIN_MODAL });
+					return newStore;
+				default:
+					return store;
+			}
+		};
+
+		self.handler = function (oldData, newData) {
+			console.log(self.path, 'handler', 'old', oldData, 'new', newData);
+
+			if (self.getStatus(oldData) !== self.getStatus(newData)) {
+
+				switch (self.getStatus(newData)) {
+					case actions.HIDE_LOGIN_MODAL:
+						$(self.root).find(".ui.modal").modal('hide');
+						break;
+					case actions.SHOW_LOGIN_MODAL:
+						console.log("----------------status---- show modal");
+						$(self.root).find(".ui.modal").modal('show');
+						break;
+
+				}
+			}
+		};
+	});
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
+
+/***/ },
+/* 314 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(riot) {'use strict';
+
+	var _store = __webpack_require__(302);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	riot.tag2('ts-button', '<button onclick="{dispatch}">{opts.name}</button>', '', '', function (opts) {
+		this.dispatch = function (e) {
+			_store2.default.dispatch({ type: opts.action });
+		};
+
+		this.on('mount', function () {
+			console.log('opts', opts);
+		});
+	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(300)))
 
 /***/ }

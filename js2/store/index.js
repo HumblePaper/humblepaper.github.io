@@ -27,6 +27,7 @@ function Store() {
 	}
 
 	this.update =  function(store) {
+    isDispatching = false
 		if(store !== _store){
 			_store = store 
       // setTimeout(this.trigger('update', _store))

@@ -5,7 +5,7 @@ import {storeMixin} from '../store'
 <poller>
 	<script >
 
-		 var self = this
+		  var self = this
 
   		 var actions = {
   		 	POLLER_START 	   :'POLLER_START',

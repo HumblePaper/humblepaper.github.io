@@ -6,7 +6,7 @@ import riot from 'riot'
 
 
   var routes = {
-    home: () => riot.mount('#view', 'login'),
+    home: () => riot.mount('#view', 'home'),
     dashboard: () =>  riot.mount('#view', 'dashboard')
   }
 

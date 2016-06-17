@@ -10933,7 +10933,15 @@
 	  riot.observable(this);
 
 	  this.dispatch = function (actionType, data) {
-	    this.trigger('action', actionType, data);
+
+	    if (isDispatching) throw new Error('Reducers may not dispatch actions.');
+
+	    try {
+	      isDispatching = true;
+	      this.trigger('action', actionType, data);
+	    } finally {
+	      isDispatching = false;
+	    }
 	  };
 
 	  this.getStore = function () {
@@ -10943,7 +10951,8 @@
 	  this.update = function (store) {
 	    if (store !== _store) {
 	      _store = store;
-	      setTimeout(this.trigger('update', _store));
+	      // setTimeout(this.trigger('update', _store))
+	      this.trigger('update', _store);
 	    }
 	  };
 
@@ -11051,7 +11060,7 @@
 
 	var API_ROOT = 'http://192.168.99.100/';
 
-	var remote = true;
+	var remote = false;
 	if (!remote) {
 
 		var tempArray = [];

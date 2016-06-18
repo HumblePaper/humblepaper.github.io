@@ -3,7 +3,7 @@ import store from '../store'
 	<button onclick={dispatch}>{opts.name}</button>
 	<script >
 		this.dispatch = function (e) {
-			store.dispatch({type:opts.action})
+			store.dispatch(opts.action)
 		}
 
 		this.on('mount', function(){

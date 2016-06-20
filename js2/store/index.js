@@ -121,5 +121,6 @@ var storeMixin = {
 
 }
 
+
 export {storeMixin}
 export default store

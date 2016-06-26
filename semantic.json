@@ -1,0 +1,21 @@
+{
+  "base": "semantic/",
+  "paths": {
+    "source": {
+      "config": "src/theme.config",
+      "definitions": "src/definitions/",
+      "site": "src/site/",
+      "themes": "src/themes/"
+    },
+    "output": {
+      "packaged": "../src/ui/",
+      "uncompressed": "../src/ui/components/",
+      "compressed": "../src/ui/components/",
+      "themes": "../src/ui/themes/"
+    },
+    "clean": "../src/ui/"
+  },
+  "permission": false,
+  "rtl": false,
+  "version": "2.1.8"
+}

@@ -6,8 +6,9 @@ import commonjs from 'rollup-plugin-commonjs';
 
 export default {
 entry: 'src/index.js',
-dest: 'dest/bundle.js',
+dest: 'static/app.js',
 format: 'umd',
+// sourceMap: true,
 plugins: [
     json(),
     riot(),

@@ -15,7 +15,7 @@ gulp.task('build ui', build);
 // webserve task
 gulp.task('server' , function()
 {
-    gulp.src('./dest')
+    gulp.src('./static')
         .pipe(webserver({
              livereload: true,
              open: true

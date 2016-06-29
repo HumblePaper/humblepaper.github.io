@@ -52,7 +52,7 @@ riotux.Store({
     },
     set_job_as_fulfilled: function(state, value){
       state.jobs[value]='fulfilled';
-    }
+    },
     created_job_request: function(state, value) {
       // new_request_id = generates a new id for the request
       var uuid = guid();

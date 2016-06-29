@@ -19,7 +19,7 @@ riotux.Actions({
   },
   set_job_as_fulfilled: function(store, value){
   	store.dispatch('set_job_as_fulfilled', value);
-  }
+  },
   add_job_id: function (store, value) {
     store.dispatch('add_job_id', value);
   }

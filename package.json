@@ -11,7 +11,8 @@
     "jquery": "^2.2.4",
     "js-cookie": "^2.1.2",
     "riot": "^2.4.1",
-    "riot-route": "^2.4.0"
+    "riot-route": "^2.4.0",
+    "npm-run-all": "*"
   },
   "devDependencies": {
     "babel": "^6.5.2",

@@ -32,7 +32,7 @@ var guid = function() {
   	// send the remote request to the server
 
   	// get back a job id 
-	var new_job_id = uuid = guid()
+	var new_job_id = guid()
 
   	// update store with the job id
   	riotux.action('jobs', 'add_job_id', new_job_id)

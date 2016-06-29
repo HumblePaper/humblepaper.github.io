@@ -1,5 +1,7 @@
+var riotux = require("riotux");
+
 <login>
-	<form class="ui form" id="signinForm" onsubmit="{this.loginUser}">
+	<form class="ui form" id="signinForm" onsubmit="{loginUser}">
   		  <h4 class="ui dividing header">Login</h4>
   		    <div >
 				<div class="field">
@@ -18,6 +20,11 @@
 
   		<script>
   			  var self = this
+
+  			  this.loginUser = function(){
+  			  	 var login_credentials = {username: this.username, password:this.password};
+  			  	 riotux.action('authentication_flow', 'change_login_state', login_credentials);
+  			  }
 
   			
   		</script>

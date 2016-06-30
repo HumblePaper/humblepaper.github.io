@@ -35,7 +35,7 @@ module.exports = {
   // postcss: [cssimport, cssnested, customProperties, autoprefixer, csswring],
   devServer: {
     contentBase: './static/',
-    port: 1337,
+    port: 8000,
     hot: true,
     inline: true
   }

@@ -1,8 +1,11 @@
 var riot = require("riot")
+
 require('./components/router.tag')
+require('./components/macaroon.tag')
 require('./components/job.tag')
 require('./components/control.tag')
 require('./components/app.tag')
+require('./components/poller.tag')
 require('./components/homepage.tag')
 require('./components/drafteditpage.tag')
 require('./components/anon_homepage.tag')

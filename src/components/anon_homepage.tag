@@ -1,5 +1,7 @@
 <anon_homepage>
 
-	<login></login>
+	<div class="ui grid">
+		<login></login>
+	</div>
 
 </anon_homepage>

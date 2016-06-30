@@ -1,4 +1,4 @@
-var riotux = require("riotux");
+var Arbiter = require("promissory-arbiter");
 
 var guid = function() {
   function s4() {
@@ -16,32 +16,33 @@ var guid = function() {
 
 	self.uuid = guid()
 
-	self.keys = {}
+	self.remote_requests = [];
 
-	riotux.subscribe(this, 'remote_requests', function(store, value){
+	Arbiter.subscribe('remote_requests', function(value, store){
+
+	console.log(store, value['newvalue']);
+		if (value['newvalue']['status']=='blank'){
+			var request_id = value['newvalue'];
   	// get the latest job requests from the remote_request store
-  	 self.remote_requests = riotux.get('remote_requests');
-  	 if (self.keys.hasOwnProperty(self.uuid+store+value)){
+  
 
-  	 } else {
-	  	 self.keys[self.uuid+store+value]=value;
-	  	 console.log('job.tag--->', self.uuid, store, value);
-  	 }
-
-  	
+  	 self.remote_requests.push(request_id);
   	// send the remote request to the server
 
   	// get back a job id 
 	var new_job_id = guid()
 
   	// update store with the job id
-  	riotux.action('jobs', 'add_job_id', new_job_id)
+  	Arbiter.publish('actions', {'action':'add_job_id', 'value':{'job_id':new_job_id, 'request_id':request_id}});
 
+
+		}
+		
   });
 
-	riotux.subscribe(this, 'jobs_fulfilled', function(store, value){
-
-	})
+		Arbiter.subscribe('jobs_fulfilled', function(store, value){
+		console.log('jobs_fulfilled')
+	});
 
 
 </job>

@@ -5,6 +5,6 @@
 	<control></control>
 	<job></job>
 	<!-- <macaroon></macaroon> -->
-	<!-- <poller></poller> -->
+	<poller></poller>
 
 </app>

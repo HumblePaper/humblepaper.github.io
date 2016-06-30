@@ -1,4 +1,4 @@
-var riotux = require("riotux")
+var Arbiter = require("promissory-arbiter");
 
 <router>
 
@@ -6,6 +6,8 @@ var riotux = require("riotux")
 
 
 	<script>
+
+
 	var self = this;
 
 	var routes = {'/': 'homepage', '/create': 'drafteditpage'};
@@ -15,7 +17,7 @@ var riotux = require("riotux")
 	console.log("this.currentPage-->",this.currentPage);
 
 	var goTo = function(page){
-		console.log("goTo-->",page);
+		console.log("goTo-->",page, self.currentPage);
 	  if (self.currentPage) {
 	  	console.log("goTo if self.currentPage-->",self.currentPage);
 	    self.currentPage.unmount(true); //unmount and keep parent tag
@@ -25,15 +27,18 @@ var riotux = require("riotux")
 	  // console.log(self.currentPage); //remember current page
 	};
 
-	riotux.subscribe(this, 'route', function(state,state_value){
-		console.log("riotux.subscribe-->",state, state_value);
-		self.update();
+	Arbiter.subscribe('route', function(state_value){
+		console.log("riotux.subscribe-->", state_value);
+		self.update(state_value);
 	})
 
-	this.on('update', function(){
+	this.on('update', function(new_route){
 		console.log("update-->");
 		var oldroute = self.route;
-		self.route = riotux.get('route');
+		if (new_route==undefined){
+			new_route = '/';
+		}
+		self.route = new_route;
 		console.log("update self.route-->",self.route, routes[self.route]);
 		goTo(routes[self.route]);
 		riot.route(self.route) 
@@ -41,7 +46,7 @@ var riotux = require("riotux")
 
 	this.on('mount', function(){
 		console.log("this.on('mount')-->");
-		self.route = riotux.get('route');
+		self.route = '/';
 		console.log("this.on('mount')", self.currentPage, routes[self.route]);
 		goTo(routes[self.route]);
 		// self.currentpage = riot.mount('#app', routes['/'])[0];

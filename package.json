@@ -10,9 +10,11 @@
     "isomorphic-fetch": "^2.2.1",
     "jquery": "^2.2.4",
     "js-cookie": "^2.1.2",
+    "npm-run-all": "*",
+    "promissory-arbiter": "^1.0.1",
     "riot": "^2.4.1",
     "riot-route": "^2.4.0",
-    "npm-run-all": "*"
+    "watchjs": "0.0.0"
   },
   "devDependencies": {
     "babel": "^6.5.2",

@@ -1,6 +1,7 @@
-var riotux = require("riotux");
+var Arbiter = require("promissory-arbiter");
 
 <homepage>
+	<macaroon></macaroon>
 	<div class={hide:authenticated==false}>
 		<loggedin_homepage></loggedin_homepage>
 	</div>
@@ -16,23 +17,26 @@ var riotux = require("riotux");
 
 	var login_succeeded = false;
 
-	this.authenticated = riotux.get('authenticated');
+	this.authenticated = false;
 
-	riotux.subscribe(this, 'authentication_flow', function(){
-		self.update();
+	Arbiter.subscribe('authentication_flow', function(value){
+		self.update(value);
 	});
 
-	this.on('update', function(){
-	  	var authentication_flow = riotux.get('authentication_flow');
-		var succeeded_or_failed = false;
-		if (authentication_flow['login_failed']){
-			succeeded_or_failed = true;
-		}  			  	
-	  	if (authentication_flow['login_submitted']==true&&succeeded_or_failed==false){
-	  		self.loading = true;
-	  	} else {
-	  		self.loading = false;
-	  	}
+	this.on('update', function(value){
+		if (value==undefined){}else{
+			var authentication_flow = value;
+			var succeeded_or_failed = false;
+			if (authentication_flow['login_failed']){
+				succeeded_or_failed = true;
+			}  			  	
+		  	if (authentication_flow['login_submitted']==true&&succeeded_or_failed==false){
+		  		self.loading = true;
+		  	} else {
+		  		self.loading = false;
+		  	}
+		}
+	  	
 	  });
 
 

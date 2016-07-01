@@ -80,6 +80,7 @@ var Arbiter = require("promissory-arbiter");
   			  this.message = null;
 
   			  this.loginUser = function(){
+  			  	console.log(this.username.value);
   			  	console.log('loginUser--->', self.username.value);
   			  	 var login_credentials = {username: self.username.value, password:self.password.value};
   			  	 // Action is submit_login and store's state is authentication_flow
@@ -87,11 +88,14 @@ var Arbiter = require("promissory-arbiter");
   			  }
 
 			Arbiter.subscribe('authentication_flow', function(value){
-			console.log('login.tag riotux.subscribe--->',value);
+			console.log('login.tag got data--->',value);
   			  	var prop = value['prop'];
   			  	var value = value['newvalue'];
 				if (prop=='login_submitted'){
 					self.loading = value;
+				}
+				if (prop=='login_succeeded'){
+					self.loading = false;
 				}
 				self.update();
   			  });

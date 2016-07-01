@@ -4,12 +4,12 @@ var Arbiter = require("promissory-arbiter")
 
 
 Arbiter.subscribe('authentication_flow', function(value){
-			console.log('control tag --->',value);
   			  	var prop = value['prop'];
+				console.log('control tag --->',value);
+				if (prop=='login_submitted'){
   			  	var value = value['newvalue'];
   			  	var login_credentials = value['credentials'];
-				if (prop=='login_submitted'){
-				Arbiter.publish('actions', {'action':'create_job', 'value':{'credentials':login_credentials, 'success':'authentication_flow.login_succeeded', 'failed':'authentication_flow.login_failed'}});
+				Arbiter.publish('actions', {'action':'submit_login_remote', 'value':{'credentials':login_credentials, 'success':'login_succeeded', 'failed':'login_failed'}});
 				}
 				
   			  });

@@ -1,11 +1,20 @@
 var Arbiter = require("promissory-arbiter");
 
 var actions = {
+  macaroon_received: function(value) {
+	Arbiter.publish('mutations', {'mutation':'update_macaroon', 'value':{'state':'macaroon_received', 'value':value}});
+  },
+  login_succeeded: function(value) {
+	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_succeeded', 'value':value}});
+  },
+  login_failed: function(value) {
+	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_succeeded', 'value':value}});
+  },
   submit_login: function(value) {
 	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_submitted', 'credentials':value}});
   },
   submit_login_remote: function(value){
-  	Arbiter.publish('mutations', {'mutation':'create_job', 'value':{'state':'remote_requests',  'credentials':value}});
+  	Arbiter.publish('mutations', {'mutation':'created_job_request', 'value':{'state':'submit_login_remote',  'value':value}});
   },	
   change_route: function(value) {
     console.log('actions---> change route');
@@ -18,7 +27,7 @@ var actions = {
     Arbiter.publish('mutations', {'mutation':'created_job_request', 'value':{'state':'created_job_request', 'value':value}});
   },
   set_job_as_fulfilled: function(value){
-  	Arbiter.publish('mutations', {'mutation':'set_job_as_fulfilled', 'value': {'state':'set_job_as_fulfilled', 'job_id':value}});
+  	Arbiter.publish('mutations', {'mutation':'set_job_as_fulfilled', 'value': {'state':'set_job_as_fulfilled', 'job_id':value['job_id'], 'request_id':value['request_id'], 'payload':value['payload']}});
   },
   add_job_id: function (value) {
     Arbiter.publish('mutations', {'mutation': 'add_job_id', 'value':{'state':'jobs', 'value':value}});

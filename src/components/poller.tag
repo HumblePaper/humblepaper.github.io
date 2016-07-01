@@ -21,7 +21,7 @@ var Arbiter = require("promissory-arbiter")
 			  url: 'http://api.termsheet.io/data.json',
 			  dataType: 'json',
 			  contentType: 'application/json',
-			  async: false,
+			  async: true,
 			  headers: {
 			    "Authorization": self.macaroon
 			  },
@@ -30,16 +30,17 @@ var Arbiter = require("promissory-arbiter")
 			    if (data.length>0){
 
 			      	for (var i = 0; i <data.length; i++){
-			      		var job_id = data[i]['job_id'];
-			      		var payload = data[i]['payload'];
-			      		var message = data[i]['messsage'];
+			      		var json_data = JSON.parse(data[i]);
+			      		var job_id = json_data[i]['job_id'];
+			      		var payload = json_data[i]['payload'];
+			      		var message = json_data[i]['messsage'];
 					    Arbiter.publish('actions', {'action':'set_job_as_fulfilled', 'value': {'job_id':job_id, 'message':message, 'payload':payload} })
 					}
 
 			    }
 			  }
 			});
-		}, 1000);
+		}, 2000);
 		return x;
 	}
 

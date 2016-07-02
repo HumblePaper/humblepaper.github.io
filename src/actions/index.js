@@ -8,7 +8,7 @@ var actions = {
 	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_succeeded', 'value':value}});
   },
   login_failed: function(value) {
-	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_succeeded', 'value':value}});
+	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_failed', 'value':value}});
   },
   submit_login: function(value) {
 	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_submitted', 'credentials':value}});
@@ -26,8 +26,8 @@ var actions = {
   create_job: function (value) {
     Arbiter.publish('mutations', {'mutation':'created_job_request', 'value':{'state':'created_job_request', 'value':value}});
   },
-  set_job_as_fulfilled: function(value){
-  	Arbiter.publish('mutations', {'mutation':'set_job_as_fulfilled', 'value': {'state':'set_job_as_fulfilled', 'job_id':value['job_id'], 'request_id':value['request_id'], 'payload':value['payload']}});
+  set_job_as_fulfilled: function(payload){
+  	Arbiter.publish('mutations', {'mutation':'set_job_as_fulfilled', 'value': {'state':'set_job_as_fulfilled', 'value':payload['value']}});
   },
   add_job_id: function (value) {
     Arbiter.publish('mutations', {'mutation': 'add_job_id', 'value':{'state':'jobs', 'value':value}});

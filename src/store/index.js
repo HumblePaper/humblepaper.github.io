@@ -28,7 +28,7 @@ var store =  {
     authentication_flow: {
       'login_submitted':false,
       'login_sent_remote':false,
-      'login_failed':false,
+      'login_failed':{'status':false, 'message':null},
       'login_succeeded':false
     },
     macaroon:null,
@@ -54,6 +54,10 @@ var mutations = {
       } 
       if (new_state=='login_succeeded'){
         store.profile.username=value['value']['username'];
+      }
+      if (new_state=='login_failed'){
+        console.log('FAILLLLLLLEEEEEDDDDDDD', value['value']);
+        store.authentication_flow['login_failed'] = {'status':true, 'message':value['value']['message']};
       }
     },
     update_macaroon: function(value){
@@ -103,6 +107,7 @@ var mutations = {
       var obj = {};
       obj.request_id = uuid;
       obj.status = 'blank';
+      obj.payload = payload.value.payload;
       obj.success = success;
       obj.failed = failed;
       obj.action = action;
@@ -112,17 +117,19 @@ var mutations = {
       console.log('remote_requests---->', store.remote_requests);
     },
 
-    set_job_as_fulfilled: function(value){
-      console.log('fulfilled', value);
-      var job_id = value['job_id'];
+    set_job_as_fulfilled: function(payload){
+      console.log('fulfilled', payload.value);
+      var job_id = payload.value.job_id;
       for (var n = 0; n <store.remote_requests.length; n++){
         if (store.remote_requests[n]['job_id']==job_id){
 
           var obj = {};
-          obj.request_id = value['request_id'];
+          obj.request_id = payload.value.request_id;
           obj.job_id = job_id;
           obj.status = 'done';
-          obj.payload = value['payload'];
+          obj.message = payload.value.message;
+          obj.status_code = payload.value.status_code;
+          obj.payload = payload.value.payload;
           obj.action = store.remote_requests[n]['action'];
           obj.success = store.remote_requests[n]['success'];
           obj.failed = store.remote_requests[n]['failed'];

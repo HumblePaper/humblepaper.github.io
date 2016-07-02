@@ -26,7 +26,7 @@ var guid = function() {
 
 	Arbiter.subscribe('remote_requests', function(value, store){
 
-		var new_job_id = 
+		var new_job_id = null;
 
 		console.log(store, value['newvalue']);
 
@@ -34,8 +34,8 @@ var guid = function() {
 			var request_id = value['newvalue']['request_id'];
 		  	// get the latest job requests from the remote_request store
 		  
-		  	 var payload = value['payload'];
-		  	 console.log('action', value['newvalue']['action']);
+		  	 var payload = value['newvalue']['payload'];
+		  	 console.log('action', value['newvalue']['action'], 'payload',payload);
 		  	 self.remote_requests.push(request_id);
 		  	 console.log(self.api[value['newvalue']['action']]);
 		  	// send the remote request to the server
@@ -48,7 +48,7 @@ var guid = function() {
 			  headers: {
 			    "Authorization": self.macaroon
 			  },
-			  data: JSON.stringify({"username":"sree", "password":"abcd12345"}),
+			  data: JSON.stringify(payload),
 			  success: function (data){
 			    console.log(data);
 			    new_job_id = data['job_id'];
@@ -63,18 +63,22 @@ var guid = function() {
 		}
 
 		if (value['newvalue']['status']=='done'){
-		
-			var event = value['newvalue']['success'];
-			Arbiter.publish('actions', {'action':event, 'value':value['newvalue']['payload']});
+			var success=false;
+			if (value['newvalue']['status_code']==200){
+				success=true;
+			}
+			if (success==true){
+				var event = value['newvalue']['success'];
+
+			}else {
+				var event = value['newvalue']['failed'];
+			}
+			
+			Arbiter.publish('actions', {'action':event, 'value':value['newvalue']});
 
 		}
 
   });
-
-		Arbiter.subscribe('jobs_fulfilled', function(store, value){
-		console.log('jobs_fulfilled')
-	});
-
 
 		Arbiter.subscribe('macaroon', function(value){
 		self.macaroon = value['newvalue'];

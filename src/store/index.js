@@ -25,6 +25,113 @@ var guid = function() {
 
 var store =  {
     profile:{'username':null},
+    modals:{
+      'registration':{
+        'name':'registration',
+        'title':'Create your account',
+        'content':'store.forms.registration',
+        'buttons':[
+          {
+            'name':'Submit',
+            'action':'submit_registration',
+            'color':'blue',
+            'state':'pristine'
+          },
+          {
+            'name':'Cancel',
+            'action':'deactive_registration',
+            'color':'red',
+            'state':'pristine'
+          }
+          ],
+        'state':'inactive'
+      }
+    },
+    forms:{
+      'registration':{
+        'title': 'Create your account',
+        'fields':[
+          {
+            'label':'First Name',
+            'name':'firstname',
+            'input_type':'text',
+            'placeholder':'Enter your first name',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Last Name',
+            'name':'lastname',
+            'input_type':'text',
+            'placeholder':'Enter your last name',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Username',
+            'name':'username',
+            'input_type':'text',
+            'placeholder':'Enter a username for this account',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Password',
+            'name':'password',
+            'input_type':'password',
+            'placeholder':'Enter your password',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Confirm password',
+            'name':'confirm_password',
+            'input_type':'password',
+            'placeholder':'Confirm your password',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Mobile',
+            'name':'mobile',
+            'input_type':'text',
+            'placeholder':'Enter your mobile number',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Email',
+            'name':'email',
+            'input_type':'email',
+            'placeholder':'Enter your email address',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+        ],
+        'action':'submit_registration', 
+        'state':'pristine'
+    }
+     },
+     registration_flow: {
+      'registration_submitted':false,
+      'registration_sent_remote':false,
+      'registration_failed':{'status':false, 'message':null},
+      'registration_succeeded':false
+    },
     authentication_flow: {
       'login_submitted':false,
       'login_sent_remote':false,
@@ -43,7 +150,36 @@ var store =  {
     startup_selected_or_created: 'selected',
   }
 
+exports.store = store;
+
 var mutations = {  
+    change_registration_state: function(value){
+      console.log('mutations---> change_registration_state', value);
+      var new_state = value['state']; 
+      store.registration_flow[new_state] = true;
+      if (new_state=='registration_submitted'){
+        store.registration_flow['registration_submitted'] = true;
+      } 
+      if (new_state=='registration_succeeded'){
+        store.registration_flow['registration_succeeded'] = true;
+      }
+      if (new_state=='registration_failed'){
+        store.registration_flow['registration_failed'] = {'status':true, 'message':value['value']['message']};
+      }
+    },
+    update_modal_state: function(value){
+      var modal_name = value['value']['modal_name'];
+      console.log('mutations---> change', modal_name,store.modals[modal_name]);
+      if (modal_name=='registration'){
+        store.modals[modal_name].state = value['value']['modal_state'];
+      }
+    },
+    change_form_state: function(value){
+
+    },
+    update_form: function(value){
+
+    },
     change_login_state: function(value){
       console.log('mutations---> change_login_state', value);
       var new_state = value['state']; 
@@ -143,6 +279,15 @@ var mutations = {
     }
   }
 
+watch(store, 'registration_flow', function(prop, action, newvalue, oldvalue){
+  console.log(prop, action, newvalue, oldvalue);
+  if (prop=='registration_submitted'){
+    Arbiter.publish('registration_flow', {'prop':prop, 'oldvalue':oldvalue, 'newvalue':newvalue, 'registration_credentials':store['credentials']});
+  } else {
+    Arbiter.publish('registration_flow', {'prop':prop, 'oldvalue':oldvalue, 'newvalue':newvalue});    
+  }
+});
+
 watch(store, 'authentication_flow', function(prop, action, newvalue, oldvalue){
   console.log(prop, action, newvalue, oldvalue);
   if (prop=='login_submitted'){
@@ -156,6 +301,17 @@ watch(store, 'profile', function(prop, action, newvalue, oldvalue){
   console.log('profile watch--->',prop, action, newvalue, oldvalue);
   Arbiter.publish('profile', {'prop':prop, 'oldvalue':oldvalue, 'newvalue':newvalue});
 });
+
+watch(store.modals.registration, function(prop, action, newvalue, oldvalue){
+  console.log('registration modal watch--->',prop, action, newvalue, oldvalue);
+  if (newvalue=='active'){
+    Arbiter.publish('activate_registration_modal', {'oldvalue':oldvalue, 'newvalue':newvalue});
+  }
+  if (newvalue=='inactive'){
+    Arbiter.publish('deactivate_registration_modal', {'oldvalue':oldvalue, 'newvalue':newvalue});    
+  }
+}, 2);
+
 
 watch(store, 'macaroon', function(prop, action, newvalue, oldvalue){
   console.log('macaroon watch--->',prop, action, newvalue, oldvalue);

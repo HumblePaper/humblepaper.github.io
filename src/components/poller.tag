@@ -21,7 +21,7 @@ var Arbiter = require("promissory-arbiter")
 			  url: 'http://api.termsheet.io/data.json',
 			  dataType: 'json',
 			  contentType: 'application/json',
-			  async: false,
+			  async: true,
 			  headers: {
 			    "Authorization": self.macaroon
 			  },

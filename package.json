@@ -62,7 +62,6 @@
     "riot": "^2.4.1",
     "riot-routehandler": "^1.2.3",
     "riotjs-loader": "^3.0.0",
-    "riotux": "^1.0.62",
     "semantic-ui": "^2.1.8",
     "webpack": "^1.9.10",
     "webpack-dev-server": "^1.9.0"
@@ -72,7 +71,7 @@
     "bundle": "webpack -p -d --progress --colors",
     "build": "npm-run-all html bundle",
     "serve": "webpack-dev-server --hot",
-    "dev": "npm-run-all html serve"
+    "dev": "npm-run-all html bundle serve"
   },
   "author": "",
   "license": "ISC"

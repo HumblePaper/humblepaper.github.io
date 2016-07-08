@@ -44,7 +44,7 @@ var guid = function() {
 			  url: self.api[value['newvalue']['action']]['url'],
 			  dataType: 'json',
 			  contentType: 'application/json',
-			  async: false,
+			  async: true,
 			  headers: {
 			    "Authorization": self.macaroon
 			  },

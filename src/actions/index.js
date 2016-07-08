@@ -4,6 +4,12 @@ var actions = {
   macaroon_received: function(value) {
 	Arbiter.publish('mutations', {'mutation':'update_macaroon', 'value':{'state':'macaroon_received', 'value':value}});
   },
+  activate_modal: function(value) {
+  	Arbiter.publish('mutations', {'mutation':'update_modal_state', 'value':{'state':'modal_activated', 'value':value}});
+  },
+  deactivate_modal: function(value) {
+  	Arbiter.publish('mutations', {'mutation':'update_modal_state', 'value':{'state':'modal_deactivated', 'value':value}});
+  },
   login_succeeded: function(value) {
 	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_succeeded', 'value':value}});
   },
@@ -35,6 +41,6 @@ var actions = {
 };
 
 Arbiter.subscribe('actions', function(value, action){
-	console.log("actions--->", action,"value----->", value)
+	console.log("actions--->", action,"value----->", value['action'])
 	actions[value['action']](value['value']);
 });

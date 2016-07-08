@@ -4,9 +4,7 @@ var Arbiter = require("promissory-arbiter");
 
 	<div id="app"></div>
 
-
 	<script>
-
 
 	var self = this;
 
@@ -49,8 +47,6 @@ var Arbiter = require("promissory-arbiter");
 		self.route = '/';
 		console.log("this.on('mount')", self.currentPage, routes[self.route]);
 		goTo(routes[self.route]);
-		// self.currentpage = riot.mount('#app', routes['/'])[0];
-		// riot.route.base(self.route)
 		riot.route.start(true)
 	})
 

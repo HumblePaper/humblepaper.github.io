@@ -45,6 +45,26 @@ var store =  {
           }
           ],
         'state':'inactive'
+      },
+      'login':{
+        'name':'login',
+        'title':'Login to your account',
+        'content':'store.forms.login',
+        'buttons':[
+          {
+            'name':'Submit',
+            'action':'submit_login',
+            'color':'blue',
+            'state':'pristine'
+          },
+          {
+            'name':'Cancel',
+            'action':'deactive_login',
+            'color':'red',
+            'state':'pristine'
+          }
+          ],
+        'state':'inactive'
       }
     },
     forms:{
@@ -124,6 +144,33 @@ var store =  {
         ],
         'action':'submit_registration', 
         'state':'pristine'
+    },
+    'login':{
+        'title': 'Login to your account',
+        'fields':[
+          {
+            'label':'Username',
+            'name':'username',
+            'input_type':'text',
+            'placeholder':'Enter your username',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+          {
+            'label':'Password',
+            'name':'password',
+            'input_type':'password',
+            'placeholder':'Enter your password',
+            'valid':true,
+            'pristine':true,
+            'error':null,
+            'value':null
+          },
+        ],
+        'action':'submit_login', 
+        'state':'pristine'
     }
      },
      registration_flow: {
@@ -170,9 +217,9 @@ var mutations = {
     update_modal_state: function(value){
       var modal_name = value['value']['modal_name'];
       console.log('mutations---> change', modal_name,store.modals[modal_name]);
-      if (modal_name=='registration'){
+      // if (modal_name=='registration'){
         store.modals[modal_name].state = value['value']['modal_state'];
-      }
+      // }
     },
     change_form_state: function(value){
 
@@ -301,6 +348,16 @@ watch(store, 'profile', function(prop, action, newvalue, oldvalue){
   console.log('profile watch--->',prop, action, newvalue, oldvalue);
   Arbiter.publish('profile', {'prop':prop, 'oldvalue':oldvalue, 'newvalue':newvalue});
 });
+
+watch(store.modals.login, function(prop, action, newvalue, oldvalue){
+  console.log('login modal watch--->',prop, action, newvalue, oldvalue);
+  if (newvalue=='active'){
+    Arbiter.publish('activate_login_modal', {'oldvalue':oldvalue, 'newvalue':newvalue});
+  }
+  if (newvalue=='inactive'){
+    Arbiter.publish('deactivate_login_modal', {'oldvalue':oldvalue, 'newvalue':newvalue});    
+  }
+}, 2);
 
 watch(store.modals.registration, function(prop, action, newvalue, oldvalue){
   console.log('registration modal watch--->',prop, action, newvalue, oldvalue);

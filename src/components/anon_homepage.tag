@@ -17,6 +17,11 @@ var Store = require("../store/index.js");
 		</div>
 	</div>
 
+	<modal data={login_modal} content={login_form}>	
+
+		<tsform {login_form}></tsform>
+		}
+	</modal>
 	<modal data={registration_modal}></modal>
 
   	<script>
@@ -24,7 +29,11 @@ var Store = require("../store/index.js");
   	var self = this;
 
   	this.on("update", function(){
-  		this.registration_modal = Store.store.modals.registration;
+
+  		self.login_form = Store.store.forms.login;
+  		console.log("loginform", self.login_form);
+  		self.login_modal = Store.store.modals.login;
+  		self.registration_modal = Store.store.modals.registration;
   		console.log("anon_homepage----", this.registration_modal);
   	})
 

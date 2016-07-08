@@ -15,5 +15,6 @@ require('./components/drafteditpage.tag')
 require('./components/anon_homepage.tag')
 require('./components/loggedin_homepage.tag')
 require('./components/login.tag')
+require('./components/tsform.tag')
 
 riot.mount('#app', 'app')

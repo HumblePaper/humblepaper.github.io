@@ -28,6 +28,9 @@ var Arbiter = require("promissory-arbiter");
 
 	var self = this;
 
+	this.activeLogin = function(){
+		Arbiter.publish('actions', {'action':'activate_modal', 'value':{'modal_name':'login', 'modal_state':'active'}});
+	}
 	this.registerUser = function(){
 		Arbiter.publish('actions', {'action':'activate_modal', 'value':{'modal_name':'registration', 'modal_state':'active'}});
 	}

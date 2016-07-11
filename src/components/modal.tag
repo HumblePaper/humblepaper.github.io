@@ -1,12 +1,12 @@
 var Arbiter = require("promissory-arbiter");
 <modal>
-	<div id="{id}" class="ui modal">
+	<div id="{id}" class="{ui:true, small:true, modal:true}">
 	  <i onClick={cancelModal} class="close icon"></i>
 	  <div class="header">
-	    {header}
+	    {data.title}
 	  </div>
 	  <div class="{image:image_src, content:true}">
-	   
+
 	   	<yield/>
 	  </div>
 	  <div class="actions">
@@ -19,6 +19,10 @@ var Arbiter = require("promissory-arbiter");
 	<script>
 
 	var self = this;
+
+	this.content = this.opts.content;
+	this.data = this.opts.data;
+	this.small = this.opts.data;
 	
 	this.active = false;
 
@@ -38,10 +42,11 @@ var Arbiter = require("promissory-arbiter");
 	this.on("update", function(){
 	
 		self.content = self.opts.content;
+		self.data = self.opts.data;
 		console.log('this.content', this.opts);
 
 		self.name = self.opts.data.name;
-		self.header = self.opts.data.header;
+		self.title = self.opts.data.title;
 		self.image_src = self.opts.data.image_src;
 		self.image_description = self.opts.data.image_description;
 		self.modal = $('#'+self.id);

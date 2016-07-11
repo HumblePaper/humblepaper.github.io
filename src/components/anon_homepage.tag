@@ -18,9 +18,7 @@ var Store = require("../store/index.js");
 	</div>
 
 	<modal data={login_modal} content={login_form}>	
-
-		<tsform {login_form}></tsform>
-		}
+		<tsform data={data} content={content}></tsform>	
 	</modal>
 	<modal data={registration_modal}></modal>
 

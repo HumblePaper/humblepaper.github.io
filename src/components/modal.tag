@@ -10,8 +10,7 @@ var Arbiter = require("promissory-arbiter");
 	   	<yield/>
 	  </div>
 	  <div class="actions">
-	    <div class="ui button" onClick={cancelModal}>Cancel</div>
-	    <div class="ui button">OK</div>
+	  		<div each = {data.buttons} class = "{ui:true, button:true, blue:color=='blue', red:color=='red'}" onClick={buttonAction(action)}>{ name }</div>
 	  </div>
 	</div>	
 
@@ -19,7 +18,6 @@ var Arbiter = require("promissory-arbiter");
 	<script>
 
 	var self = this;
-
 	this.content = this.opts.content;
 	this.data = this.opts.data;
 	this.small = this.opts.data;
@@ -77,6 +75,11 @@ var Arbiter = require("promissory-arbiter");
 
 	this.cancelModal = function(){
 		Arbiter.publish('actions', {'action':'deactivate_modal', 'value':{'modal_name':self.name, 'modal_state':'inactive'}});
+	}
+
+	this.buttonAction = function(action){
+		console.log(action);
+		Arbiter.publish('actions',{'action':action, 'value':{}});
 	}
 
 	</script>

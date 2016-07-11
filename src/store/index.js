@@ -70,6 +70,7 @@ var store =  {
     forms:{
       'registration':{
         'title': 'Create your account',
+        'name':'registration',
         'fields':[
           {
             'label':'First Name',
@@ -147,6 +148,7 @@ var store =  {
     },
     'login':{
         'title': 'Login to your account',
+        'name':'login',
         'fields':[
           {
             'label':'Username',
@@ -225,7 +227,17 @@ var mutations = {
 
     },
     update_form: function(value){
-
+      console.log('mutations---> update_form', value['value']);
+      var payload = value['value'];
+      var form = store.forms[payload['form']];
+      console.log(store.forms[payload['form']]);
+      for (var i = 0; i <form.fields.length; i++){
+        if (form.fields[i].name==payload['field']){
+          console.log('found a field match', form.fields[i]);
+          form.fields[i]['value'] = payload['value'];
+        }
+      };
+      console.log(form);
     },
     change_login_state: function(value){
       console.log('mutations---> change_login_state', value);

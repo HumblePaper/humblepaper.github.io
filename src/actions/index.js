@@ -10,6 +10,9 @@ var actions = {
   deactivate_modal: function(value) {
   	Arbiter.publish('mutations', {'mutation':'update_modal_state', 'value':{'state':'modal_deactivated', 'value':value}});
   },
+  update_form: function(value) {
+    Arbiter.publish('mutations', {'mutation': 'update_form', 'value': {'state': 'update_form', 'value':value}});
+  },
   login_succeeded: function(value) {
 	Arbiter.publish('mutations', {'mutation':'change_login_state', 'value':{'state':'login_succeeded', 'value':value}});
   },

@@ -8,7 +8,7 @@ var unwatch = WatchJS.unwatch;
 Arbiter.subscribe('mutations', function(payload){
   var mutation = payload['mutation'];
   var value = payload['value'];  
-  console.log(mutation, mutations[mutation]);
+  // console.log(mutation, mutations[mutation]);
   mutations[mutation](value);
 });
 
@@ -55,11 +55,16 @@ var store =  {
             'name':'Submit',
             'action':'submit_login',
             'color':'blue',
+            'payload':null,
             'state':'pristine'
           },
           {
             'name':'Cancel',
-            'action':'deactive_login',
+            'action':'deactivate_modal',
+            'payload':{
+              'modal_name':'login', 
+              'modal_state':'inactive'
+            },
             'color':'red',
             'state':'pristine'
           }
@@ -227,17 +232,17 @@ var mutations = {
 
     },
     update_form: function(value){
-      console.log('mutations---> update_form', value['value']);
+      // console.log('mutations---> update_form', value['value']);
       var payload = value['value'];
       var form = store.forms[payload['form']];
-      console.log(store.forms[payload['form']]);
+      // console.log(store.forms[payload['form']]);
       for (var i = 0; i <form.fields.length; i++){
         if (form.fields[i].name==payload['field']){
-          console.log('found a field match', form.fields[i]);
+          // console.log('found a field match', form.fields[i]);
           form.fields[i]['value'] = payload['value'];
         }
       };
-      console.log(form);
+      // console.log(form);
     },
     change_login_state: function(value){
       console.log('mutations---> change_login_state', value);
@@ -371,6 +376,16 @@ watch(store.modals.login, function(prop, action, newvalue, oldvalue){
   }
 }, 2);
 
+watch(store.forms.login, function(prop, action, newvalue, oldvalue){
+  // console.log('login form watch--->',prop, action, newvalue, oldvalue);
+  if (newvalue=='active'){
+    Arbiter.publish('activate_login_form', {'oldvalue':oldvalue, 'newvalue':newvalue});
+  }
+  if (newvalue=='inactive'){
+    Arbiter.publish('deactivate_login_form', {'oldvalue':oldvalue, 'newvalue':newvalue});    
+  }
+}, 2);
+
 watch(store.modals.registration, function(prop, action, newvalue, oldvalue){
   console.log('registration modal watch--->',prop, action, newvalue, oldvalue);
   if (newvalue=='active'){
@@ -380,7 +395,6 @@ watch(store.modals.registration, function(prop, action, newvalue, oldvalue){
     Arbiter.publish('deactivate_registration_modal', {'oldvalue':oldvalue, 'newvalue':newvalue});    
   }
 }, 2);
-
 
 watch(store, 'macaroon', function(prop, action, newvalue, oldvalue){
   console.log('macaroon watch--->',prop, action, newvalue, oldvalue);

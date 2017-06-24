@@ -10,7 +10,7 @@ var Arbiter = require("promissory-arbiter");
 	   	<yield/>
 	  </div>
 	  <div class="actions">
-	  		<div each = {data.buttons} class = "{ui:true, button:true, blue:color=='blue', red:color=='red'}" onClick={buttonAction(action)}>{ name }</div>
+	  		<tsbutton color={color} action={action} name={name} each = { data.buttons }></tsbutton>	  			
 	  </div>
 	</div>	
 
@@ -58,14 +58,14 @@ var Arbiter = require("promissory-arbiter");
 		self.hide_modal_name = "deactivate_"+self.name+"_modal";
 
 		Arbiter.subscribe(self.modal_name, function(){
-			console.log('show', self.opts.data, self.modal, self.modal_name);
+			// console.log('show', self.opts.data, self.modal, self.modal_name);
 			// self.showModal();
 			// self.update();
 			$('#'+self.id).modal('show');
 			});
 
 		Arbiter.subscribe(self.hide_modal_name, function(){
-			console.log('hide', self.opts.data, self.modal, self.hide_modal_name);
+			// console.log('hide', self.opts.data, self.modal, self.hide_modal_name);
 			// self.hideModal();
 			// self.update();
 			$('#'+self.id).modal('hide');
@@ -75,11 +75,6 @@ var Arbiter = require("promissory-arbiter");
 
 	this.cancelModal = function(){
 		Arbiter.publish('actions', {'action':'deactivate_modal', 'value':{'modal_name':self.name, 'modal_state':'inactive'}});
-	}
-
-	this.buttonAction = function(action){
-		console.log(action);
-		Arbiter.publish('actions',{'action':action, 'value':{}});
 	}
 
 	</script>

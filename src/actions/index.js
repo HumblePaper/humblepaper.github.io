@@ -26,7 +26,6 @@ var actions = {
   	Arbiter.publish('mutations', {'mutation':'created_job_request', 'value':{'state':'submit_login_remote',  'value':value}});
   },	
   change_route: function(value) {
-    console.log('actions---> change route');
   	Arbiter.publish('change_route', value);
   },
   startup_selected_or_created: function (value) {
